@@ -78,6 +78,7 @@ CONSOLE_controller_fisherprice := joypad_controller_fisherprice
 CONSOLE_controller_fisherprice_analog := joypad_controller_fisherprice_analog
 CONSOLE_controller_alpakka := joypad_controller_alpakka
 CONSOLE_controller_macropad := joypad_controller_macropad
+CONSOLE_controller_neogeo := joypad_controller_neogeo
 
 # App definitions: APP_name = board target output_name input output
 # Naming convention: <app>_<board> for all apps
@@ -107,6 +108,7 @@ APP_controller_fisherprice_kb2040 := kb2040 controller_fisherprice controller_fi
 APP_controller_fisherprice_analog_kb2040 := kb2040 controller_fisherprice_analog controller_fisherprice_analog_kb2040 GPIO/ADC USB
 APP_controller_alpakka_pico := pico controller_alpakka controller_alpakka_pico GPIO/I2C USB
 APP_controller_macropad := macropad controller_macropad controller_macropad GPIO USB
+APP_controller_neogeo_kb2040 := kb2040 controller_neogeo controller_neogeo_kb2040 GPIO USB
 
 # All apps (note: controller_macropad not included - build explicitly with 'make controller_macropad')
 # Note: usb2loopy_kb2040, snes23do_rp2040zero excluded until more mature
@@ -337,6 +339,10 @@ controller_alpakka_pico:
 .PHONY: controller_macropad
 controller_macropad:
 	$(call build_app,controller_macropad)
+
+.PHONY: controller_neogeo_kb2040
+controller_neogeo_kb2040:
+	$(call build_app,controller_neogeo_kb2040)
 
 # Console-only targets (defaults to KB2040)
 .PHONY: 3do

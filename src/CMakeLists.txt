@@ -874,6 +874,18 @@ target_include_directories(joypad_controller_macropad PUBLIC ${CONTROLLER_INCLUD
 target_link_libraries(joypad_controller_macropad PRIVATE ${CONTROLLER_LIBRARIES})
 joypad_target_common(joypad_controller_macropad)
 
+# --- NEOGEO ---
+add_executable(joypad_controller_neogeo)
+target_compile_definitions(joypad_controller_neogeo PRIVATE
+    CONFIG_CONTROLLER=1 CONTROLLER_TYPE_NEOGEO=1 DISABLE_USB_HOST=1 BUTTON_USER_GPIO=${BOARD_BUTTON_GPIO}
+)
+target_sources(joypad_controller_neogeo PUBLIC ${CORE_SOURCES} ${USB_DEVICE_SOURCES} ${CONTROLLER_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/apps/controller/app.c
+)
+target_include_directories(joypad_controller_neogeo PUBLIC ${CONTROLLER_INCLUDES})
+target_link_libraries(joypad_controller_neogeo PRIVATE ${CONTROLLER_LIBRARIES})
+joypad_target_common(joypad_controller_neogeo)
+
 # ============================================================================
 # DEBUG BUILD CONFIGURATION
 # ============================================================================

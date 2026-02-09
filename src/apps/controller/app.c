@@ -86,6 +86,10 @@ static const button_name_t button_names[] = {
     #include "pad/configs/macropad.h"
     #define PAD_CONFIG pad_config_macropad
     #define CONTROLLER_NAME "MacroPad"
+#elif defined(CONTROLLER_TYPE_NEOGEO)
+    #include "pad/configs/neogeo.h"
+    #define PAD_CONFIG pad_config_neogeo
+    #define CONTROLLER_NAME "NEOGEO"
 #else
     #error "No controller type defined! Define one of: CONTROLLER_TYPE_FISHERPRICE, CONTROLLER_TYPE_ALPAKKA, etc."
 #endif
