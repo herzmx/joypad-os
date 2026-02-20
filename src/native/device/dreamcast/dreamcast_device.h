@@ -136,6 +136,7 @@ typedef struct {
 // ============================================================================
 
 // Initialization
+void setup_maple_gpio(uint8_t pin1, uint8_t pin5);
 void dreamcast_init(void);
 
 // Core 1 task (real-time Maple Bus handling)

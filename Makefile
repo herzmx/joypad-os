@@ -69,6 +69,8 @@ CONSOLE_neogeo := joypad_neogeo
 CONSOLE_neogeo_pico := joypad_neogeo_pico
 CONSOLE_neogeo_rp2040zero := joypad_neogeo_rp2040zero
 CONSOLE_n642dc := joypad_n642dc
+CONSOLE_neogeo2dc := joypad_neogeo2dc
+CONSOLE_neogeo2dc := joypad_neogeo2dc_rp2040zero
 CONSOLE_snes3do := joypad_snes3do
 CONSOLE_uart := joypad_uart
 CONSOLE_usb := joypad_usb
@@ -99,6 +101,8 @@ APP_usb2neogeo_kb2040 := kb2040 neogeo usb2neogeo_kb2040 USB/BT NEOGEO
 APP_usb2neogeo_pico := pico neogeo_pico usb2neogeo_pico USB/BT NEOGEO
 APP_usb2neogeo_rp2040zero := rp2040zero neogeo_rp2040zero usb2neogeo_rp2040zero USB/BT NEOGEO
 APP_n642dc_kb2040 := kb2040 n642dc n642dc_kb2040 N64 Dreamcast
+APP_neogeo2dc_kb2040 := kb2040 neogeo2dc neogeo2dc_kb2040 NEOGEO Dreamcast
+APP_neogeo2dc_rp2040zero := rp2040zero neogeo2dc_rp2040zero neogeo2dc_rp2040zero NEOGEO Dreamcast
 APP_usb23do_rp2040zero := rp2040zero 3do usb23do_rp2040zero USB/BT 3DO
 APP_snes23do_rp2040zero := rp2040zero snes3do snes23do_rp2040zero SNES 3DO
 APP_usb2uart_kb2040 := kb2040 uart usb2uart_kb2040 USB/BT UART
@@ -174,6 +178,8 @@ help:
 	@echo "  make usb2neogeo_pico    - USB/BT -> NEOGEO (Pi Pico)"
 	@echo "  make usb2neogeo_rp2040zero - USB/BT -> NEOGEO (RP2040-Zero)"
 	@echo "  make n642dc_kb2040      - N64 -> Dreamcast (KB2040)"
+	@echo "  make neogeo2dc_kb2040   - NEOGEO -> Dreamcast (KB2040)"
+	@echo "  make neogeo2dc_rp2040zero - NEOGEO -> Dreamcast (RP2040-Zero)"
 	@echo "  make usb23do_rp2040zero - USB/BT -> 3DO (RP2040-Zero)"
 	@echo "  make snes23do_rp2040zero - SNES -> 3DO (RP2040-Zero)"
 	@echo "  make usb2uart_kb2040    - USB -> UART/ESP32 (KB2040)"
@@ -190,7 +196,7 @@ help:
 	@echo "  make n642usb_kb2040     - N64 -> USB HID (KB2040)"
 	@echo "  make gc2usb_kb2040      - GameCube -> USB HID (KB2040)"
 	@echo "  make neogeo2usb_kb2040  - NEOGEO -> USB HID (KB2040)"
-	@echo "  make neogeo2usb_rp2040zero - NEOGEO -> USB HID (KB2040)"
+	@echo "  make neogeo2usb_rp2040zero - NEOGEO -> USB HID (RP2040-Zero)"
 	@echo "  make controller_fisherprice_kb2040 - GPIO -> USB HID (RP2040-Zero)"
 	@echo "  make controller_alpakka_pico - GPIO/I2C -> USB HID (Pico)"
 	@echo "  make controller_macropad - 12 keys -> USB HID (MacroPad RP2040)"
@@ -318,6 +324,14 @@ usb2neogeo_rp2040zero:
 .PHONY: n642dc_kb2040
 n642dc_kb2040:
 	$(call build_app,n642dc_kb2040)
+
+.PHONY: neogeo2dc_kb2040
+neogeo2dc_kb2040:
+	$(call build_app,neogeo2dc_kb2040)
+
+.PHONY: neogeo2dc_rp2040zero
+neogeo2dc_rp2040zero:
+	$(call build_app,neogeo2dc_rp2040zero)
 
 .PHONY: usb23do_rp2040zero
 usb23do_rp2040zero:
@@ -578,6 +592,10 @@ flash-usb2dc_rp2040zero:
 .PHONY: flash-n642dc_kb2040
 flash-n642dc_kb2040:
 	@$(MAKE) --no-print-directory _flash_app APP_NAME=n642dc_kb2040
+
+.PHONY: flash-neogeo2dc_kb2040
+flash-neogeo2dc_kb2040:
+	@$(MAKE) --no-print-directory _flash_app APP_NAME=neogeo2dc_kb2040
 
 .PHONY: flash-usb23do_rp2040zero
 flash-usb23do_rp2040zero:

@@ -256,6 +256,9 @@ static volatile bool purupuru_updated[MAX_PLAYERS] = {false};
 static uint32_t last_rumble_time[MAX_PLAYERS] = {0};
 #define RUMBLE_TIMEOUT_MS 300  // Turn off rumble if no command for 300ms
 
+// Setup maple gpio
+static bool setup_maple_done = false;
+
 // ============================================================================
 // CONTROLLER STATE
 // ============================================================================
@@ -951,13 +954,13 @@ static void __no_inline_not_in_flash_func(core1_rx_task)(void)
 // INITIALIZATION
 // ============================================================================
 
-static void SetupMapleTX(void)
+static void SetupMapleTX(uint8_t pin1, uint8_t pin5)
 {
     tx_sm = pio_claim_unused_sm(TXPIO, true);
     uint offset = pio_add_program(TXPIO, &maple_tx_program);
 
     // Clock divider of 3.0 (from MaplePad)
-    maple_tx_program_init(TXPIO, tx_sm, offset, MAPLE_PIN1, MAPLE_PIN5, 3.0f);
+    maple_tx_program_init(TXPIO, tx_sm, offset, pin1, pin5, 3.0f);
 
     // Setup DMA
     tx_dma_channel = dma_claim_unused_channel(true);
@@ -975,11 +978,11 @@ static void SetupMapleTX(void)
         false
     );
 
-    gpio_pull_up(MAPLE_PIN1);
-    gpio_pull_up(MAPLE_PIN5);
+    gpio_pull_up(pin1);
+    gpio_pull_up(pin5);
 }
 
-static void SetupMapleRX(void)
+static void SetupMapleRX(uint8_t pin1, uint8_t pin5)
 {
     // Claim SM0-2 for maple_rx before use
     for (int sm = 0; sm < 3; sm++) {
@@ -996,7 +999,7 @@ static void SetupMapleRX(void)
            maple_rx_triple3_program.length);
 
     // Clock divider of 3.0 (from MaplePad)
-    maple_rx_triple_program_init(RXPIO, offsets, MAPLE_PIN1, MAPLE_PIN5, 3.0f);
+    maple_rx_triple_program_init(RXPIO, offsets, pin1, pin5, 3.0f);
 
     // Wait for core1 to be ready (use flag instead of FIFO - FIFO is used by flash lockout)
     while (!core1_ready) {
@@ -1011,6 +1014,18 @@ static void SetupMapleRX(void)
     // Signal core1 that PIO is started
     core0_started_pio = true;
     __sev();
+}
+
+void setup_maple_gpio(uint8_t pin1, uint8_t pin5)
+{
+    // First call - setup TX and RX
+    printf("[DC] Setting up Maple TX (PIO0)...\n");
+    SetupMapleTX(pin1, pin5);
+    printf("[DC] Setting up Maple RX (PIO1)...\n");
+    SetupMapleRX(pin1, pin5);
+    setup_maple_done = true;
+    printf("[DC] Maple TX/RX started\n");
+    printf("[DC] Maple Bus initialized on GPIO %d/%d\n", pin1, pin5);
 }
 
 void dreamcast_init(void)
@@ -1048,7 +1063,10 @@ void dreamcast_init(void)
     BuildPuruPuruConditionPacket();
     BuildPuruPuruBlockReadPacket();
 
-    printf("[DC] Maple Bus initialized on GPIO %d/%d\n", MAPLE_PIN1, MAPLE_PIN5);
+    //     
+    if (!setup_maple_done) {
+        setup_maple_gpio(MAPLE_PIN1, MAPLE_PIN5);
+    }
 }
 
 // ============================================================================
@@ -1067,22 +1085,10 @@ void __not_in_flash_func(dreamcast_core1_task)(void)
 
 void dreamcast_task(void)
 {
-    static bool setup_done = false;
     static uint32_t start_of_packet = 0;
     static uint32_t packet_count = 0;
     static uint32_t last_debug_time = 0;
     static uint32_t last_rx_ends = 0;
-
-    if (!setup_done) {
-        // First call - setup TX and RX
-        printf("[DC] Setting up Maple TX (PIO0)...\n");
-        SetupMapleTX();
-        printf("[DC] Setting up Maple RX (PIO1)...\n");
-        SetupMapleRX();
-        setup_done = true;
-        printf("[DC] Maple TX/RX started\n");
-        last_debug_time = time_us_32();
-    }
 
     // Periodic debug output (every 5 seconds)
     uint32_t now = time_us_32();

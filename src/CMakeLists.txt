@@ -580,6 +580,42 @@ joypad_target_common(joypad_n642dc)
 pico_generate_pio_header(joypad_n642dc ${CMAKE_CURRENT_LIST_DIR}/lib/joybus-pio/src/joybus.pio)
 pico_generate_pio_header(joypad_n642dc ${CMAKE_CURRENT_LIST_DIR}/native/device/dreamcast/maple.pio)
 
+# --- NEOGEO to Dreamcast ---
+add_executable(joypad_neogeo2dc)
+target_compile_definitions(joypad_neogeo2dc PRIVATE CONFIG_NEOGEO2DC=1 CONFIG_DC=1 CONFIG_NO_NEOPIXEL=1)
+target_sources(joypad_neogeo2dc PUBLIC ${COMMON_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/host/arcade/arcade_host.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/device/dreamcast/dreamcast_device.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/device/dreamcast/maple_state_machine.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/apps/neogeo2dc/app.c
+)
+target_include_directories(joypad_neogeo2dc PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/apps/neogeo2dc
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/host/arcade
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/device/dreamcast
+)
+target_link_libraries(joypad_neogeo2dc PRIVATE ${COMMON_LIBRARIES} hardware_dma)
+joypad_target_common(joypad_neogeo2dc)
+pico_generate_pio_header(joypad_neogeo2dc ${CMAKE_CURRENT_LIST_DIR}/native/device/dreamcast/maple.pio)
+
+# --- NEOGEO to Dreamcast ---
+add_executable(joypad_neogeo2dc_rp2040zero)
+target_compile_definitions(joypad_neogeo2dc_rp2040zero PRIVATE CONFIG_NEOGEO2DC=1 CONFIG_DC=1 CONFIG_NO_NEOPIXEL=1 PICO_RP2040_ZERO_BUILD=1)
+target_sources(joypad_neogeo2dc_rp2040zero PUBLIC ${COMMON_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/host/arcade/arcade_host.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/device/dreamcast/dreamcast_device.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/device/dreamcast/maple_state_machine.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/apps/neogeo2dc/app.c
+)
+target_include_directories(joypad_neogeo2dc_rp2040zero PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/apps/neogeo2dc
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/host/arcade
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/device/dreamcast
+)
+target_link_libraries(joypad_neogeo2dc_rp2040zero PRIVATE ${COMMON_LIBRARIES} hardware_dma)
+joypad_target_common(joypad_neogeo2dc_rp2040zero)
+pico_generate_pio_header(joypad_neogeo2dc_rp2040zero ${CMAKE_CURRENT_LIST_DIR}/native/device/dreamcast/maple.pio)
+
 # --- 3DO ---
 add_executable(joypad_3do)
 target_compile_definitions(joypad_3do PRIVATE CONFIG_3DO=1)
