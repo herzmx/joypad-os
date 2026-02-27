@@ -102,6 +102,7 @@ CONSOLE_lodgenet2n64 := joypad_lodgenet2n64
 CONSOLE_lodgenet2gc := joypad_lodgenet2gc
 CONSOLE_neogeo2usb := joypad_neogeo2usb
 CONSOLE_neogeo2usb_rp2040zero := joypad_neogeo2usb_rp2040zero
+CONSOLE_jvs2usb_rp2040zero := joypad_jvs2usb_rp2040zero
 CONSOLE_controller_fisherprice_v1 := joypad_controller_fisherprice_v1
 CONSOLE_controller_fisherprice_v2 := joypad_controller_fisherprice_v2
 CONSOLE_controller_alpakka := joypad_controller_alpakka
@@ -169,6 +170,7 @@ APP_lodgenet2n64_pico := pico lodgenet2n64 lodgenet2n64_pico LodgeNet N64
 APP_lodgenet2gc_pico := pico lodgenet2gc lodgenet2gc_pico LodgeNet GameCube
 APP_neogeo2usb_kb2040 := kb2040 neogeo2usb neogeo2usb_kb2040 NEOGEO USB
 APP_neogeo2usb_rp2040zero := rp2040zero neogeo2usb_rp2040zero neogeo2usb_rp2040zero NEOGEO USB
+APP_jvs2usb_rp2040zero := rp2040zero jvs2usb_rp2040zero jvs2usb_rp2040zero JVS USB
 APP_controller_fisherprice_v1_kb2040 := kb2040 controller_fisherprice_v1 controller_fisherprice_v1_kb2040 GPIO USB
 APP_controller_fisherprice_v2_kb2040 := kb2040 controller_fisherprice_v2 controller_fisherprice_v2_kb2040 GPIO/ADC USB
 APP_controller_alpakka_pico := pico controller_alpakka controller_alpakka_pico GPIO/I2C USB
@@ -274,7 +276,8 @@ help:
 	@echo "  make nuon2usb_kb2040    - Nuon -> USB HID (KB2040)"
 	@echo "  make gc2usb_kb2040      - GameCube -> USB HID (KB2040)"
 	@echo "  make neogeo2usb_kb2040  - NEOGEO -> USB HID (KB2040)"
-	@echo "  make neogeo2usb_rp2040zero - NEOGEO -> USB HID (KB2040)"
+	@echo "  make neogeo2usb_rp2040zero - NEOGEO -> USB HID (RP2040-Zero)"
+	@echo "  make jvs2usb_rp2040zero - JVS -> USB HID (RP2040-Zero)"
 	@echo "  make controller_fisherprice_v1_kb2040 - Fisher Price V1 (button-only) -> USB HID (KB2040)"
 	@echo "  make controller_fisherprice_v2_kb2040 - Fisher Price V2 (analog+shoulders) -> USB HID (KB2040)"
 	@echo "  make controller_alpakka_pico - GPIO/I2C -> USB HID (Pico)"
@@ -840,6 +843,10 @@ neogeo2usb_kb2040:
 neogeo2usb_rp2040zero:
 	$(call build_app,neogeo2usb_rp2040zero)
 
+.PHONY: jvs2usb_rp2040zero
+jvs2usb_rp2040zero:
+	$(call build_app,jvs2usb_rp2040zero)
+
 .PHONY: controller_fisherprice_v1_kb2040
 controller_fisherprice_v1_kb2040:
 	$(call build_app,controller_fisherprice_v1_kb2040)
@@ -1201,6 +1208,10 @@ flash-neogeo2usb_kb2040:
 .PHONY: flash-neogeo2usb_rp2040zero
 flash-neogeo2usb_rp2040zero:
 	@$(MAKE) --no-print-directory _flash_app APP_NAME=neogeo2usb_rp2040zero
+
+.PHONY: flash-jvs2usb_rp2040zero
+flash-jvs2usb_rp2040zero:
+	@$(MAKE) --no-print-directory _flash_app APP_NAME=jvs2usb_rp2040zero
 
 .PHONY: flash-controller_fisherprice_v1_kb2040
 flash-controller_fisherprice_v1_kb2040:

@@ -1654,6 +1654,29 @@ target_include_directories(joypad_neogeo2usb_rp2040zero PUBLIC
 target_link_libraries(joypad_neogeo2usb_rp2040zero PRIVATE pico_stdlib pico_multicore hardware_pio pico_rand tinyusb_device tinyusb_board)
 joypad_target_common(joypad_neogeo2usb_rp2040zero)
 
+# JVS2USB — RP2040-Zero (WS2812 on GP16, auto from board def)
+add_executable(joypad_jvs2usb_rp2040zero)
+target_compile_definitions(joypad_jvs2usb_rp2040zero PRIVATE
+    CONFIG_JVS2USB=1
+    CONFIG_USB=1
+    DISABLE_USB_HOST=1
+    USE_BOOTSEL_BUTTON=1
+    PICO_RP2040_ZERO_BUILD=1
+)
+target_sources(joypad_jvs2usb_rp2040zero PUBLIC ${CORE_SOURCES} ${USB_DEVICE_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/host/jvs/jvs_host.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/apps/jvs2usb/app.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/jvsio/jvsio_host.c
+)
+target_include_directories(joypad_jvs2usb_rp2040zero PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/apps/jvs2usb
+    ${CMAKE_CURRENT_SOURCE_DIR}/usb/usbd
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/jvsio
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/host/jvs
+)
+target_link_libraries(joypad_jvs2usb_rp2040zero PRIVATE pico_stdlib pico_multicore hardware_pio hardware_uart pico_rand tinyusb_device tinyusb_board)
+joypad_target_common(joypad_jvs2usb_rp2040zero)
+
 # --- NES2USB (NES -> USB HID) ---
 add_executable(joypad_nes2usb)
 target_compile_definitions(joypad_nes2usb PRIVATE CONFIG_NES2USB=1 CONFIG_USB=1 DISABLE_USB_HOST=1)
