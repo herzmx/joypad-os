@@ -1,13 +1,15 @@
 # Makefile for Joypad on nRF52840 boards (nRF Connect SDK / Zephyr)
 #
 # Supported boards: xiao_ble, adafruit_feather_nrf52840
-# Supported apps:   bt2usb (default), usb2usb (with MAX3421E FeatherWing)
+# Supported apps:   bt2usb (default), usb2usb (with MAX3421E FeatherWing),
+#                   btusb2usb (MAX3421E + Bluetooth combined)
 # Requires: nRF Connect SDK v3.1.0 (installed via 'make init')
 # Usage:
 #   make init              # One-time workspace setup
 #   make build             # Build for default board (xiao_ble)
 #   make build BOARD=adafruit_feather_nrf52840  # Build for Feather
 #   make build APP_TYPE=usb2usb BOARD=adafruit_feather_nrf52840  # usb2usb
+#   make build APP_TYPE=btusb2usb BOARD=adafruit_feather_nrf52840  # btusb2usb
 #   make flash-uf2         # Flash via UF2 bootloader drive
 #   make clean             # Remove build directory
 
@@ -117,4 +119,4 @@ help:
 	@echo ""
 	@echo "Variables:"
 	@echo "  BOARD        - Target board (default: xiao_ble)"
-	@echo "  APP_TYPE     - App to build: bt2usb (default) or usb2usb"
+	@echo "  APP_TYPE     - App to build: bt2usb (default), usb2usb, or btusb2usb"

@@ -231,6 +231,8 @@ help:
 	@echo "  make flash-bt2usb_feather_nrf52840 - Flash Feather nRF52840 via UF2 bootloader"
 	@echo "  make usb2usb_feather_nrf52840 - USB -> USB HID (Feather nRF52840 + MAX3421E FeatherWing)"
 	@echo "  make flash-usb2usb_feather_nrf52840 - Flash Feather nRF52840 + MAX3421E via UF2"
+	@echo "  make btusb2usb_feather_nrf52840 - USB/BT -> USB HID (Feather nRF52840 + MAX3421E + BLE)"
+	@echo "  make flash-btusb2usb_feather_nrf52840 - Flash Feather nRF52840 btusb2usb via UF2"
 	@echo "  make bt2nuon_pico_w     - Bluetooth -> Nuon (Pico W)"
 	@echo "  make bt2n64_pico_w      - Bluetooth -> N64 (Pico W)"
 	@echo "  make wifi2usb_pico_w    - WiFi -> USB HID (Pico W)"
@@ -583,6 +585,27 @@ flash-usb2usb_feather_nrf52840: usb2usb_feather_nrf52840
 
 .PHONY: monitor-usb2usb_feather_nrf52840
 monitor-usb2usb_feather_nrf52840:
+	@cd nrf && $(MAKE) monitor
+
+# --- Adafruit Feather nRF52840 btusb2usb (MAX3421E + BLE, requires nRF Connect SDK) ---
+.PHONY: btusb2usb_feather_nrf52840
+btusb2usb_feather_nrf52840:
+	@echo "$(YELLOW)Building btusb2usb for Adafruit Feather nRF52840...$(NC)"
+	@cd nrf && $(MAKE) build BOARD=adafruit_feather_nrf52840 APP_TYPE=btusb2usb
+	@mkdir -p $(RELEASE_DIR)
+	@cp nrf/build/nrf/zephyr/zephyr.uf2 \
+	    $(RELEASE_DIR)/joypad_$(VERSION_ID)_btusb2usb_feather_nrf52840.uf2
+	@echo "$(GREEN)✓ btusb2usb_feather_nrf52840 built successfully$(NC)"
+	@echo "  File: $(RELEASE_DIR)/joypad_$(VERSION_ID)_btusb2usb_feather_nrf52840.uf2"
+	@echo ""
+
+.PHONY: flash-btusb2usb_feather_nrf52840
+flash-btusb2usb_feather_nrf52840: btusb2usb_feather_nrf52840
+	@cd nrf && $(MAKE) flash-uf2
+	@echo ""
+
+.PHONY: monitor-btusb2usb_feather_nrf52840
+monitor-btusb2usb_feather_nrf52840:
 	@cd nrf && $(MAKE) monitor
 
 .PHONY: wifi2usb_pico_w

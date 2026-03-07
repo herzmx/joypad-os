@@ -30,6 +30,10 @@
 #endif
 #include "core/services/leds/leds.h"
 
+#ifdef BTSTACK_USE_NRF
+extern const bt_transport_t bt_transport_nrf;
+#endif
+
 #ifdef BTSTACK_USE_CYW43
 #include "pico/cyw43_arch.h"
 extern const bt_transport_t bt_transport_cyw43;
@@ -432,6 +436,13 @@ void app_init(void)
     router_add_route(INPUT_SOURCE_BLE_CENTRAL, OUTPUT_TARGET_USB_DEVICE, 0);
 #endif
 
+#ifdef BTSTACK_USE_NRF
+    // Initialize nRF52840 built-in BLE (BTstack runs in its own Zephyr thread)
+    printf("[app:usb2usb] Initializing nRF BLE...\n");
+    bt_init(&bt_transport_nrf);
+    router_add_route(INPUT_SOURCE_BLE_CENTRAL, OUTPUT_TARGET_USB_DEVICE, 0);
+#endif
+
     printf("[app:usb2usb] Initialization complete\n");
     printf("[app:usb2usb]   Routing: USB Host → USB Device (HID Gamepad)\n");
     printf("[app:usb2usb]   Player slots: %d\n", MAX_PLAYER_SLOTS);
@@ -457,8 +468,8 @@ void app_task(void)
         last_led_mode = mode;
     }
 
-#ifdef BTSTACK_USE_CYW43
-    // Process CYW43 Bluetooth transport
+#if defined(BTSTACK_USE_CYW43) || defined(BTSTACK_USE_NRF)
+    // Process Bluetooth transport
     bt_task();
 #endif
 

@@ -152,7 +152,9 @@ static void usb_power_init(void)
 
 int main(void)
 {
-#if defined(CONFIG_USB2USB)
+#if defined(CONFIG_BTUSB2USB)
+    printf("[joypad] Starting btusb2usb on Adafruit Feather nRF52840...\n");
+#elif defined(CONFIG_USB2USB)
     printf("[joypad] Starting usb2usb on Adafruit Feather nRF52840...\n");
 #elif defined(BOARD_FEATHER_NRF52840)
     printf("[joypad] Starting bt2usb on Adafruit Feather nRF52840...\n");
