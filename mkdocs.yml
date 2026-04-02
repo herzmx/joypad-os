@@ -102,6 +102,7 @@ nav:
       - n642dc: apps/n642dc.md
       - snes23do: apps/snes23do.md
       - n642nuon: apps/n642nuon.md
+      - lodgenet2n64: apps/lodgenet2n64.md
     - Utility:
       - usb2uart: apps/usb2uart.md
       - Custom Controllers: apps/controllers.md

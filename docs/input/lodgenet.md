@@ -89,13 +89,17 @@ Custom pin initialization via `lodgenet_host_init_pins()`.
 | C-Left | B4 | |
 | C-Up | L3 | |
 | C-Right | R3 | |
-| Z | R1 | |
-| L | L2 | |
-| R | R2 | |
+| Z | R1 | Shared MCU mapping |
+| L | L2 | Shared MCU mapping |
+| R | R2 | Shared MCU mapping |
 | Start | S2 | |
 | D-pad | DU/DD/DL/DR | Decoded from encoded SOCD d-pad |
+| Reset (All 4 encoded) | A4 | Misc 5 |
 | Menu (U+D encoded) | A1 | Home button |
+| Star (L+R encoded) | R4 | |
 | Select (U+D+R encoded) | S1 | Back button |
+| Order (U+L+R encoded) | A2 | Capture button |
+| Hash (U+D+L encoded) | L4 | |
 
 ### Encoded D-pad and Virtual Buttons
 
@@ -120,17 +124,21 @@ The driver tracks `last_dpad` to separate real d-pad state from encoded virtual 
 | B | B1 | |
 | X | B4 | |
 | Y | B3 | |
-| Z | R1 | |
-| L | L2 | |
-| R | R2 | |
+| Z | R1 | Shared MCU mapping |
+| L | L2 | Shared MCU mapping |
+| R | R2 | Shared MCU mapping |
 | Start | S2 | |
 | D-pad | DU/DD/DL/DR | Decoded from encoded d-pad |
 | Main Stick | ANALOG_LX/LY | Y inverted: `255 - raw` |
 | C-Stick | ANALOG_RX/RY | Y inverted: `255 - raw` |
 | L Trigger | ANALOG_L2 | 0-255 analog |
 | R Trigger | ANALOG_R2 | 0-255 analog |
+| Reset (All 4 encoded) | A4 | Misc 5 |
 | Menu (U+D encoded) | A1 | Home button |
+| Star (L+R encoded) | R4 | |
 | Select (U+D+R encoded) | S1 | Back button |
+| Order (U+L+R encoded) | A2 | Capture button |
+| Hash (U+D+L encoded) | L4 | |
 
 Layout reported as `LAYOUT_GAMECUBE`.
 
@@ -201,3 +209,4 @@ No rumble or LED feedback -- LodgeNet controllers are passive devices.
 ## Apps Using This Input
 
 - [lodgenet2usb](../apps/lodgenet2usb.md) -- LodgeNet controllers to USB HID
+- [lodgenet2n64](../apps/lodgenet2n64.md) -- LodgeNet controllers to N64 console

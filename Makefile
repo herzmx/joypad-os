@@ -98,6 +98,7 @@ CONSOLE_n642usb := joypad_n642usb
 CONSOLE_nuon2usb := joypad_nuon2usb
 CONSOLE_gc2usb := joypad_gc2usb
 CONSOLE_lodgenet2usb := joypad_lodgenet2usb
+CONSOLE_lodgenet2n64 := joypad_lodgenet2n64
 CONSOLE_neogeo2usb := joypad_neogeo2usb
 CONSOLE_neogeo2usb_rp2040zero := joypad_neogeo2usb_rp2040zero
 CONSOLE_controller_fisherprice_v1 := joypad_controller_fisherprice_v1
@@ -163,6 +164,7 @@ APP_nuon2usb_pico_w := pico_w nuon2usb nuon2usb_pico_w Nuon USB
 APP_gc2usb_kb2040 := kb2040 gc2usb gc2usb_kb2040 GameCube USB
 APP_lodgenet2usb_pico := pico lodgenet2usb lodgenet2usb_pico LodgeNet USB
 APP_lodgenet2usb_pico2 := pico2 lodgenet2usb lodgenet2usb_pico2 LodgeNet USB
+APP_lodgenet2n64_pico := pico lodgenet2n64 lodgenet2n64_pico LodgeNet N64
 APP_neogeo2usb_kb2040 := kb2040 neogeo2usb neogeo2usb_kb2040 NEOGEO USB
 APP_neogeo2usb_rp2040zero := rp2040zero neogeo2usb_rp2040zero neogeo2usb_rp2040zero NEOGEO USB
 APP_controller_fisherprice_v1_kb2040 := kb2040 controller_fisherprice_v1 controller_fisherprice_v1_kb2040 GPIO USB
@@ -280,6 +282,7 @@ help:
 	@echo "  make nes2usb_pico_w     - NES -> USB HID (Pico W)"
 	@echo "  make lodgenet2usb_pico   - LodgeNet -> USB HID (Pico)"
 	@echo "  make lodgenet2usb_pico2  - LodgeNet -> USB HID (Pico 2)"
+	@echo "  make lodgenet2n64_pico   - LodgeNet -> N64 (Pico)"
 	@echo ""
 	@echo "$(GREEN)Convenience Targets:$(NC)"
 	@echo "  make all           - Build all apps"
@@ -879,6 +882,10 @@ lodgenet2usb_pico:
 lodgenet2usb_pico2:
 	$(call build_app,lodgenet2usb_pico2)
 
+.PHONY: lodgenet2n64_pico
+lodgenet2n64_pico:
+	$(call build_app,lodgenet2n64_pico)
+
 # Console-only targets (defaults to KB2040)
 .PHONY: 3do
 3do:
@@ -1232,6 +1239,10 @@ flash-lodgenet2usb_pico:
 .PHONY: flash-lodgenet2usb_pico2
 flash-lodgenet2usb_pico2:
 	@$(MAKE) --no-print-directory _flash_app APP_NAME=lodgenet2usb_pico2
+
+.PHONY: flash-lodgenet2n64_pico
+flash-lodgenet2n64_pico:
+	@$(MAKE) --no-print-directory _flash_app APP_NAME=lodgenet2n64_pico
 
 # Internal flash helper for specific app (finds most recent matching file)
 .PHONY: _flash_app

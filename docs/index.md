@@ -114,6 +114,7 @@ Convert retro controllers to USB or bridge them to other consoles:
 - [**NES to USB**](apps/nes2usb.md) -- NES controller to USB gamepad
 - [**Neo Geo to USB**](apps/neogeo2usb.md) -- Arcade stick to USB gamepad
 - [**LodgeNet to USB**](apps/lodgenet2usb.md) -- LodgeNet hotel controllers (N64/GC/SNES) to USB
+- [**LodgeNet to N64**](apps/lodgenet2n64.md) -- LodgeNet hotel controllers to N64 console
 - [**N64 to Dreamcast**](apps/n642dc.md), [**SNES to 3DO**](apps/snes23do.md), [**N64 to Nuon**](apps/n642nuon.md) -- Cross-console bridges
 
 ---

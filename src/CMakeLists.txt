@@ -1688,6 +1688,36 @@ joypad_target_common(joypad_lodgenet2usb)
 pico_generate_pio_header(joypad_lodgenet2usb ${CMAKE_CURRENT_LIST_DIR}/native/host/lodgenet/lodgenet.pio)
 
 
+# --- LODGENET2N64 (LodgeNet -> N64 Console) ---
+add_executable(joypad_lodgenet2n64)
+target_compile_definitions(joypad_lodgenet2n64 PRIVATE
+    CONFIG_LODGENET2N64=1
+    DISABLE_USB_HOST=1
+    CONFIG_NO_NEOPIXEL=1
+    BOARD_LED_PIN=25
+    N64_DATA_PIN=7
+)
+target_sources(joypad_lodgenet2n64 PUBLIC ${CORE_SOURCES}
+    ${LODGENET_HOST_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/device/n64/n64_device.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/joybus-pio/src/joybus.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/joybus-pio/src/N64Console.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/apps/lodgenet2n64/app.c
+)
+target_include_directories(joypad_lodgenet2n64 PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/apps/lodgenet2n64
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/host/lodgenet
+    ${CMAKE_CURRENT_SOURCE_DIR}/native/device/n64
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/joybus-pio/include
+)
+target_link_libraries(joypad_lodgenet2n64 PRIVATE pico_stdlib pico_multicore hardware_pio hardware_flash pico_rand)
+joypad_target_common(joypad_lodgenet2n64)
+pico_enable_stdio_usb(joypad_lodgenet2n64 1)
+pico_enable_stdio_uart(joypad_lodgenet2n64 1)
+pico_generate_pio_header(joypad_lodgenet2n64 ${CMAKE_CURRENT_LIST_DIR}/native/host/lodgenet/lodgenet.pio)
+pico_generate_pio_header(joypad_lodgenet2n64 ${CMAKE_CURRENT_LIST_DIR}/lib/joybus-pio/src/joybus.pio)
+
+
 # ============================================================================
 # CONTROLLER APPS (GPIO/pad input -> USB output)
 # ============================================================================

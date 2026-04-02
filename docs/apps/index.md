@@ -83,6 +83,7 @@ These apps read one retro controller and output to a different console.
 | `n642dc` | N64 | Dreamcast | KB2040 | `make n642dc_kb2040` |
 | `snes23do` | SNES | 3DO | RP2040-Zero | `make snes23do_rp2040zero` |
 | `n642nuon` | N64 | Nuon | KB2040 | `make n642nuon_kb2040` |
+| `lodgenet2n64` | LodgeNet | N64 | Pico | `make lodgenet2n64_pico` |
 
 ### Utility Apps
 
