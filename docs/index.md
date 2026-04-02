@@ -17,29 +17,73 @@ Joypad OS translates any input device into any output protocol. Connect USB, Blu
 
 ---
 
+## Understand the System
+
+<div class="grid cards" markdown>
+
+- **[Architecture](overview/architecture.md)**
+
+    The 4-layer model: inputs, core, outputs, and apps
+
+- **[Data Flow](overview/data-flow.md)**
+
+    How controller input travels from device to console
+
+- **[Glossary](overview/glossary.md)**
+
+    Key terms: input_event_t, router, profiles, PIO, and more
+
+</div>
+
+---
+
+## Browse by Layer
+
+<div class="grid cards" markdown>
+
+- **[Input Interfaces](input/index.md)**
+
+    USB HID, XInput, Bluetooth, WiFi, SNES, N64, GameCube, NES, Neo Geo, LodgeNet, and more
+
+- **[Output Interfaces](output/index.md)**
+
+    GameCube, PCEngine, Dreamcast, Nuon, 3DO, N64, Loopy, USB Device, BLE, UART
+
+- **[Joypad Core](core/index.md)**
+
+    Router, profiles, players, storage, LEDs, hotkeys, and other shared services
+
+- **[Apps](apps/index.md)**
+
+    30+ firmware configurations: usb2gc, bt2usb, snes2usb, n642dc, and more
+
+</div>
+
+---
+
 ## Getting Started
 
 <div class="grid cards" markdown>
 
-- :material-download: **[Installation Guide](getting-started/installation.md)**
+- **[Installation Guide](getting-started/installation.md)**
 
     Flash firmware to your adapter in minutes
 
-- :material-wrench: **[Build Guide](getting-started/building.md)**
+- **[Build Guide](getting-started/building.md)**
 
     Set up a development environment and compile from source
 
-- :material-chip: **[Supported Boards](hardware/boards.md)**
+- **[Supported Boards](hardware/boards.md)**
 
     RP2040, ESP32-S3, and nRF52840 boards
 
-- :material-gamepad-variant: **[Supported Controllers](hardware/controllers.md)**
+- **[Supported Controllers](hardware/controllers.md)**
 
     USB, Bluetooth, keyboards, mice, and hubs
 
-- :material-cog: **[Web Config](features/web-config.md)**
+- **[Web Config](features/web-config.md)**
 
-    Configure your adapter from the browser — no install required
+    Configure your adapter from the browser -- no install required
 
 </div>
 
@@ -60,32 +104,15 @@ Joypad OS translates any input device into any output protocol. Connect USB, Blu
 
 ---
 
-## USB & Bluetooth Adapters
-
-Joypad OS supports a wide range of **USB controllers** (Xbox, PlayStation, Nintendo, 8BitDo, and generic HID), **Bluetooth controllers** via USB dongle, Pico W, ESP32-S3, or nRF52840, and **WiFi controllers** via JOCP protocol on Pico W.
-
-See the [USB Output](adapters/usb.md) and [Bluetooth](adapters/bluetooth.md) documentation for USB output modes, web configurator, and Xbox 360 console support.
-
----
-
 ## Native Input Adapters
 
 Convert retro controllers to USB or bridge them to other consoles:
 
-- [**SNES → USB**](adapters/native-input.md#snes-to-usb-snes2usb) — SNES/NES controller to USB gamepad
-- [**N64 → USB**](adapters/native-input.md#n64-to-usb-n642usb) — N64 controller to USB gamepad
-- [**GameCube → USB**](adapters/native-input.md#gamecube-to-usb-gc2usb) — GameCube controller to USB gamepad
-- [**Neo Geo → USB**](adapters/native-input.md#neo-geo-to-usb-neogeo2usb) — Arcade stick to USB gamepad
-- [**N64 → Dreamcast**](adapters/native-input.md#cross-console-adapters), [**SNES → 3DO**](adapters/native-input.md#cross-console-adapters) — Cross-console bridges
-
----
-
-## Architecture
-
-Learn how Joypad OS works under the hood:
-
-- [**How It Works**](architecture/overview.md) — Data flow, router, input/output layers, platform support
-- [**Layers & Internals**](architecture/layers.md) — Developer reference: interfaces, router pipeline, dual-core, latency design
+- [**SNES to USB**](adapters/native-input.md#snes-to-usb-snes2usb) -- SNES/NES controller to USB gamepad
+- [**N64 to USB**](adapters/native-input.md#n64-to-usb-n642usb) -- N64 controller to USB gamepad
+- [**GameCube to USB**](adapters/native-input.md#gamecube-to-usb-gc2usb) -- GameCube controller to USB gamepad
+- [**Neo Geo to USB**](adapters/native-input.md#neo-geo-to-usb-neogeo2usb) -- Arcade stick to USB gamepad
+- [**N64 to Dreamcast**](adapters/native-input.md#cross-console-adapters), [**SNES to 3DO**](adapters/native-input.md#cross-console-adapters) -- Cross-console bridges
 
 ---
 
@@ -96,6 +123,14 @@ Learn how Joypad OS works under the hood:
 | RP2040 | All adapters | [Build Guide](getting-started/building.md) |
 | ESP32-S3 | bt2usb (BLE) | [ESP32-S3 Docs](platforms/esp32.md) |
 | nRF52840 | bt2usb, usb2usb (BLE) | [nRF52840 Docs](platforms/nrf52840.md) |
+
+---
+
+## For Developers
+
+- **[Development Guide](development/index.md)** -- How to add inputs, outputs, apps, and drivers
+- **[Architecture Layers](architecture/layers.md)** -- Detailed developer reference: interfaces, router pipeline, dual-core, latency design
+- **[How It Works](architecture/overview.md)** -- Data flow and platform support overview
 
 ---
 
@@ -112,8 +147,8 @@ Dive into the low-level console protocols that Joypad OS implements:
 
 ## Community & Support
 
-- **Discord**: [community.joypad.ai](http://community.joypad.ai/) — Community chat
-- **Issues**: [GitHub Issues](https://github.com/joypad-ai/joypad-os/issues) — Bug reports
-- **Source**: [GitHub](https://github.com/joypad-ai/joypad-os) — Contributions welcome
+- **Discord**: [community.joypad.ai](http://community.joypad.ai/) -- Community chat
+- **Issues**: [GitHub Issues](https://github.com/joypad-ai/joypad-os/issues) -- Bug reports
+- **Source**: [GitHub](https://github.com/joypad-ai/joypad-os) -- Contributions welcome
 
 Joypad OS is licensed under the **Apache-2.0 License**.
