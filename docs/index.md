@@ -91,16 +91,16 @@ Joypad OS translates any input device into any output protocol. Connect USB, Blu
 
 ## Console Adapters
 
-| Console | Highlights |
-|---------|-----------|
-| [**PCEngine / TurboGrafx-16**](adapters/pcengine.md) | Multitap (5 players), mouse, 2/3/6-button |
-| [**GameCube / Wii**](adapters/gamecube.md) | Profiles, rumble, keyboard mode |
-| [**Sega Dreamcast**](adapters/dreamcast.md) | Rumble, analog triggers, 4 players |
-| [**Nuon**](adapters/nuon.md) | Controller, Tempest 3000 spinner, IGR |
-| [**3DO**](adapters/3do.md) | 8-player support, mouse, extension passthrough |
-| [**Neo Geo / SuperGun**](adapters/neogeo.md) | 7 profiles, 1L6B arcade layouts |
-| [**Casio Loopy**](adapters/loopy.md) | 4-player (experimental) |
-| [**N64 (BT2N64)**](adapters/n64.md) | Wireless BT controllers, rumble, profiles |
+| Console | App | Highlights |
+|---------|-----|-----------|
+| [PCEngine / TurboGrafx-16](apps/usb2pce.md) | usb2pce | Multitap (5 players), mouse, 2/3/6-button |
+| [GameCube / Wii](apps/usb2gc.md) | usb2gc | Profiles, rumble, keyboard mode |
+| [Sega Dreamcast](apps/usb2dc.md) | usb2dc | Rumble, analog triggers, 4 players |
+| [Nuon](apps/usb2nuon.md) | usb2nuon | Controller, Tempest 3000 spinner, IGR |
+| [3DO](apps/usb23do.md) | usb23do | 8-player support, mouse, extension passthrough |
+| [Neo Geo / SuperGun](apps/usb2neogeo.md) | usb2neogeo | 7 profiles, 1L6B arcade layouts |
+| [Casio Loopy](apps/usb2loopy.md) | usb2loopy | 4-player (experimental) |
+| [N64 (wireless)](apps/bt2n64.md) | bt2n64 | BT controllers, rumble, profiles |
 
 ---
 
@@ -108,11 +108,13 @@ Joypad OS translates any input device into any output protocol. Connect USB, Blu
 
 Convert retro controllers to USB or bridge them to other consoles:
 
-- [**SNES to USB**](adapters/native-input.md#snes-to-usb-snes2usb) -- SNES/NES controller to USB gamepad
-- [**N64 to USB**](adapters/native-input.md#n64-to-usb-n642usb) -- N64 controller to USB gamepad
-- [**GameCube to USB**](adapters/native-input.md#gamecube-to-usb-gc2usb) -- GameCube controller to USB gamepad
-- [**Neo Geo to USB**](adapters/native-input.md#neo-geo-to-usb-neogeo2usb) -- Arcade stick to USB gamepad
-- [**N64 to Dreamcast**](adapters/native-input.md#cross-console-adapters), [**SNES to 3DO**](adapters/native-input.md#cross-console-adapters) -- Cross-console bridges
+- [**SNES to USB**](apps/snes2usb.md) -- SNES/NES controller to USB gamepad
+- [**N64 to USB**](apps/n642usb.md) -- N64 controller to USB gamepad
+- [**GameCube to USB**](apps/gc2usb.md) -- GameCube controller to USB gamepad
+- [**NES to USB**](apps/nes2usb.md) -- NES controller to USB gamepad
+- [**Neo Geo to USB**](apps/neogeo2usb.md) -- Arcade stick to USB gamepad
+- [**LodgeNet to USB**](apps/lodgenet2usb.md) -- LodgeNet hotel controllers (N64/GC/SNES) to USB
+- [**N64 to Dreamcast**](apps/n642dc.md), [**SNES to 3DO**](apps/snes23do.md), [**N64 to Nuon**](apps/n642nuon.md) -- Cross-console bridges
 
 ---
 
@@ -129,8 +131,9 @@ Convert retro controllers to USB or bridge them to other consoles:
 ## For Developers
 
 - **[Development Guide](development/index.md)** -- How to add inputs, outputs, apps, and drivers
-- **[Architecture Layers](architecture/layers.md)** -- Detailed developer reference: interfaces, router pipeline, dual-core, latency design
-- **[How It Works](architecture/overview.md)** -- Data flow and platform support overview
+- **[Architecture](overview/architecture.md)** -- The 4-layer model and dual-core execution
+- **[Data Flow](overview/data-flow.md)** -- Input-to-output pipeline walkthrough
+- **[Router](core/router.md)** -- Routing modes, merge, transforms
 
 ---
 
@@ -142,6 +145,8 @@ Dive into the low-level console protocols that Joypad OS implements:
 - [GameCube Joybus](protocols/GAMECUBE_JOYBUS.md)
 - [Nuon Polyface](protocols/NUON_POLYFACE.md)
 - [PC Engine](protocols/PCENGINE.md)
+- [LodgeNet](protocols/lodgenet.md)
+- [SInput HID](protocols/sinput.md)
 
 ---
 
