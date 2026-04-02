@@ -49,6 +49,10 @@ Reads a native GameCube controller via the joybus single-wire protocol and outpu
 | L Trigger | L2 (analog) |
 | R Trigger | R2 (analog) |
 
+## Wiring
+
+![GC2USB Wiring](../images/Joypad_NGC-2-USB.png)
+
 ## Key Features
 
 - **Full analog** -- Main stick, C-stick, and L/R analog triggers all mapped.

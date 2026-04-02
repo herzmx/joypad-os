@@ -46,6 +46,10 @@ KB2040 uses the same pins as Pico for PIO-USB:
 | 5V | 1 | VBUS (red) |
 | GND | 4 | GND (black) |
 
+## Wiring Diagram
+
+![USB2GC Wiring Diagram](../../images/Joypad_USB-2-NGC.png)
+
 ## Build and Flash
 
 ```bash

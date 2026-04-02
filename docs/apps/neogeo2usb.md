@@ -39,6 +39,10 @@ Reads a native Neo Geo arcade stick or controller via GPIO (active-low buttons w
 | KB2040 | `make neogeo2usb_kb2040` |
 | RP2040-Zero | `make neogeo2usb_rp2040zero` |
 
+## Hardware
+
+![NeoGeo2USB RP2040-Zero](../images/neogeo2usb_rp2040_zero_front.png)
+
 ## Build and Flash
 
 ```bash

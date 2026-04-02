@@ -56,6 +56,10 @@ See [USB Device Output](../output/usb-device.md) for full mode details, feature 
 | Feather ESP32-S3 | `make usb2usb_feather_esp32s3` |
 | Feather nRF52840 | `make usb2usb_feather_nrf52840` |
 
+## Hardware
+
+![USB2USB Pico Host Wiring](../images/usb2usb_pico_host.png)
+
 ## Build and Flash
 
 ```bash

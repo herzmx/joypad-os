@@ -56,6 +56,10 @@ make usb23do_rp2040zero
 make flash-usb23do_rp2040zero
 ```
 
+## Wiring Diagram
+
+![USB2-3DO Wiring](../images/Joypad_USB-2-3DO.png)
+
 ## Profiles (Detailed)
 
 ### Default Profile (SNES-Style)

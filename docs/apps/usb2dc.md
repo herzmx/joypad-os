@@ -39,6 +39,10 @@ Connects USB and Bluetooth controllers to a Dreamcast via the Maple Bus protocol
 
 The RP2040-Zero build uses the same pinout as USB4Maple, so existing USB4Maple hardware can run Joypad OS as a drop-in replacement.
 
+### RP2040-Zero Wiring
+
+![USB2DC RP2040-Zero Wiring](../images/usb2dc_rp2040zero_wiring.png)
+
 ## Build and Flash
 
 ```bash

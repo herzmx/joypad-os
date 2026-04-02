@@ -146,6 +146,16 @@ AES pad, KOF/fighting style:
 | L2 (LT/ZL) | (disabled) |
 | R2 (RT/ZR) | (disabled) |
 
+### Profile Diagrams
+
+![Default Profile](../images/usb2neogeo_default.svg)
+![Type A](../images/usb2neogeo_typea.svg)
+![Type B](../images/usb2neogeo_typeb.svg)
+![Type C](../images/usb2neogeo_typec.svg)
+![Type D](../images/usb2neogeo_typed.svg)
+![Pad A](../images/usb2neogeo_pada.svg)
+![Pad B](../images/usb2neogeo_padb.svg)
+
 ## Supported Boards
 
 | Board | Build Command |
@@ -189,6 +199,15 @@ This implementation uses open-drain logic to prevent voltage collisions between 
 
 - **Basic protection:** Add a 1N4148 diode with the cathode (stripe) facing the RP2040.
 - **Maximum safety:** Use level shifters such as the TXS0108E (bidirectional) or the 74LVC245A (unidirectional).
+
+### RP2040-Zero Direct Solder
+
+![RP2040-Zero Front](../images/usb2neogeo_rp2040_zero_front.png)
+![RP2040-Zero Back](../images/usb2neogeo_rp2040_zero_back.png)
+
+### Latency Testing
+
+![Latency Test Setup](../images/usb2neogeo_latency_diagram.png)
 
 ## Troubleshooting
 
