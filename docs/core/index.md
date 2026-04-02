@@ -134,6 +134,16 @@ while (1) {
 
 Services run every loop iteration alongside input and output polling. They do not use separate threads or interrupts (on RP2040). On ESP32-S3 and nRF52840, services run within the main RTOS task.
 
+## Deep Dives
+
+- [Router](router.md) -- Routing modes, merge modes, transform pipeline, step-by-step walkthrough
+- [Buttons](buttons.md) -- JP_BUTTON_* reference table, analog axes, layout transforms
+- [Profiles](profiles.md) -- Button remapping, trigger config, SOCD, profile cycling UX
+- [Players](players.md) -- Slot modes, auto-assign, feedback routing
+- [Storage](storage.md) -- Flash persistence, journaled writes, write throttling
+- [LEDs](leds.md) -- NeoPixel patterns, board LED fallback, profile indication
+- [Platform HAL](platform-hal.md) -- Time, identity, reboot across RP2040/ESP32/nRF
+
 ## Next Steps
 
 - [Data Flow](../overview/data-flow.md) -- The full input-to-output pipeline
