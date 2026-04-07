@@ -98,15 +98,16 @@ Output: `releases/joypad_<commit>_<app>_<board>.uf2`
 
 Use any USB or Bluetooth controller on retro consoles:
 
-| Console | Highlights | Docs |
-|---------|-----------|------|
-| **PCEngine / TurboGrafx-16** | Multitap (5 players), mouse, 2/3/6-button | [Guide](docs/apps/usb2pce.md) |
-| **GameCube / Wii** | Profiles, rumble, keyboard mode | [Guide](docs/apps/usb2gc.md) |
-| **Sega Dreamcast** | Rumble, analog triggers, 4 players | [Guide](docs/apps/usb2dc.md) |
-| **Nuon DVD Players** | Controller, spinner (Tempest 3000), IGR | [Guide](docs/apps/usb2nuon.md) |
-| **3DO Interactive Multiplayer** | 8 players, mouse, extension passthrough | [Guide](docs/apps/usb23do.md) |
-| **Neo Geo / SuperGun** | 7 profiles, 1L6B arcade layouts | [Guide](docs/apps/usb2neogeo.md) |
-| **Casio Loopy** | 4 players (experimental) | [Guide](docs/apps/usb2loopy.md) |
+| Console | Apps | Highlights | Docs |
+|---------|------|-----------|------|
+| **PCEngine / TurboGrafx-16** | usb2pce | Multitap (5 players), mouse, 2/3/6-button | [Guide](docs/apps/usb2pce.md) |
+| **GameCube / Wii** | usb2gc, bt2gc | Profiles, rumble, keyboard mode | [Guide](docs/apps/usb2gc.md) |
+| **Sega Dreamcast** | usb2dc | Rumble, analog triggers, 4 players | [Guide](docs/apps/usb2dc.md) |
+| **N64** | bt2n64 | Rumble pak emulation, profiles, BT | [Guide](docs/apps/bt2n64.md) |
+| **Nuon DVD Players** | usb2nuon, bt2nuon | Controller, spinner (Tempest 3000), IGR | [Guide](docs/apps/usb2nuon.md) |
+| **3DO Interactive Multiplayer** | usb23do | 8 players, mouse, extension passthrough | [Guide](docs/apps/usb23do.md) |
+| **Neo Geo / SuperGun** | usb2neogeo | 7 profiles, 1L6B arcade layouts | [Guide](docs/apps/usb2neogeo.md) |
+| **Casio Loopy** | usb2loopy | 4 players (experimental) | [Guide](docs/apps/usb2loopy.md) |
 
 ### USB & Wireless Adapters
 
@@ -123,11 +124,13 @@ Convert retro controllers to USB or bridge them to other consoles:
 | Adapter | From → To | Docs |
 |---------|----------|------|
 | **SNES2USB** | SNES/NES → USB | [Guide](docs/apps/snes2usb.md) |
+| **NES2USB** | NES → USB | [Guide](docs/apps/nes2usb.md) |
 | **N642USB** | N64 → USB | [Guide](docs/apps/n642usb.md) |
 | **GC2USB** | GameCube → USB | [Guide](docs/apps/gc2usb.md) |
 | **NEOGEO2USB** | Neo Geo arcade stick → USB | [Guide](docs/apps/neogeo2usb.md) |
 | **LodgeNet2USB** | LodgeNet hotel controllers → USB | [Guide](docs/apps/lodgenet2usb.md) |
 | **N642DC** | N64 → Dreamcast | [Guide](docs/apps/n642dc.md) |
+| **N642Nuon** | N64 → Nuon | [Guide](docs/apps/n642nuon.md) |
 | **SNES23DO** | SNES → 3DO | [Guide](docs/apps/snes23do.md) |
 | **LodgeNet2N64** | LodgeNet → N64 | [Guide](docs/apps/lodgenet2n64.md) |
 | **LodgeNet2GC** | LodgeNet → GameCube | [Guide](docs/apps/lodgenet2gc.md) |
