@@ -126,8 +126,11 @@ Convert retro controllers to USB or bridge them to other consoles:
 | **N642USB** | N64 → USB | [Guide](docs/apps/n642usb.md) |
 | **GC2USB** | GameCube → USB | [Guide](docs/apps/gc2usb.md) |
 | **NEOGEO2USB** | Neo Geo arcade stick → USB | [Guide](docs/apps/neogeo2usb.md) |
+| **LodgeNet2USB** | LodgeNet hotel controllers → USB | [Guide](docs/apps/lodgenet2usb.md) |
 | **N642DC** | N64 → Dreamcast | [Guide](docs/apps/n642dc.md) |
 | **SNES23DO** | SNES → 3DO | [Guide](docs/apps/snes23do.md) |
+| **LodgeNet2N64** | LodgeNet → N64 | [Guide](docs/apps/lodgenet2n64.md) |
+| **LodgeNet2GC** | LodgeNet → GameCube | [Guide](docs/apps/lodgenet2gc.md) |
 
 ### Custom Controllers
 
@@ -149,7 +152,7 @@ make controller_macropad           # Adafruit MacroPad → USB HID
 - **8BitDo** — PCE 2.4g, M30, NeoGeo, BT adapters
 - **Other** — Hori, Logitech, Google Stadia, Sega Astro City, generic HID
 - **Peripherals** — USB keyboards, mice, hubs, Bluetooth dongles
-- **Native** — SNES, N64, GameCube, Neo Geo controllers (directly wired)
+- **Native** — SNES, N64, GameCube, Neo Geo, LodgeNet hotel controllers (directly wired)
 
 **[Full controller compatibility list](docs/hardware/controllers.md)**
 
