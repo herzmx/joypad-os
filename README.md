@@ -100,21 +100,21 @@ Use any USB or Bluetooth controller on retro consoles:
 
 | Console | Highlights | Docs |
 |---------|-----------|------|
-| **PCEngine / TurboGrafx-16** | Multitap (5 players), mouse, 2/3/6-button | [Guide](docs/adapters/pcengine.md) |
-| **GameCube / Wii** | Profiles, rumble, keyboard mode | [Guide](docs/adapters/gamecube.md) |
-| **Sega Dreamcast** | Rumble, analog triggers, 4 players | [Guide](docs/adapters/dreamcast.md) |
-| **Nuon DVD Players** | Controller, spinner (Tempest 3000), IGR | [Guide](docs/adapters/nuon.md) |
-| **3DO Interactive Multiplayer** | 8 players, mouse, extension passthrough | [Guide](docs/adapters/3do.md) |
-| **Neo Geo / SuperGun** | 7 profiles, 1L6B arcade layouts | [Guide](docs/adapters/neogeo.md) |
-| **Casio Loopy** | 4 players (experimental) | [Guide](docs/adapters/loopy.md) |
+| **PCEngine / TurboGrafx-16** | Multitap (5 players), mouse, 2/3/6-button | [Guide](docs/apps/usb2pce.md) |
+| **GameCube / Wii** | Profiles, rumble, keyboard mode | [Guide](docs/apps/usb2gc.md) |
+| **Sega Dreamcast** | Rumble, analog triggers, 4 players | [Guide](docs/apps/usb2dc.md) |
+| **Nuon DVD Players** | Controller, spinner (Tempest 3000), IGR | [Guide](docs/apps/usb2nuon.md) |
+| **3DO Interactive Multiplayer** | 8 players, mouse, extension passthrough | [Guide](docs/apps/usb23do.md) |
+| **Neo Geo / SuperGun** | 7 profiles, 1L6B arcade layouts | [Guide](docs/apps/usb2neogeo.md) |
+| **Casio Loopy** | 4 players (experimental) | [Guide](docs/apps/usb2loopy.md) |
 
 ### USB & Wireless Adapters
 
 | Adapter | What It Does | Platforms | Docs |
 |---------|-------------|-----------|------|
-| **USB2USB** | USB/BT controller → USB gamepad (XInput, PS3/4, Switch, etc.) | RP2040, nRF52840 | [Guide](docs/adapters/usb.md) |
-| **BT2USB** | Bluetooth controller → wired USB gamepad | Pico W, ESP32-S3, nRF52840 | [Guide](docs/adapters/bluetooth.md) |
-| **WiFi2USB** | WiFi controller (JOCP) → USB gamepad | Pico W | [Guide](docs/adapters/usb.md) |
+| **USB2USB** | USB/BT controller → USB gamepad (XInput, PS3/4, Switch, etc.) | RP2040, nRF52840 | [Guide](docs/apps/usb2usb.md) |
+| **BT2USB** | Bluetooth controller → wired USB gamepad | Pico W, ESP32-S3, nRF52840 | [Guide](docs/apps/bt2usb.md) |
+| **WiFi2USB** | WiFi controller (JOCP) → USB gamepad | Pico W | [Guide](docs/apps/wifi2usb.md) |
 
 ### Native Controller Adapters
 
@@ -122,12 +122,12 @@ Convert retro controllers to USB or bridge them to other consoles:
 
 | Adapter | From → To | Docs |
 |---------|----------|------|
-| **SNES2USB** | SNES/NES → USB | [Guide](docs/adapters/native-input.md#snes-to-usb-snes2usb) |
-| **N642USB** | N64 → USB | [Guide](docs/adapters/native-input.md#n64-to-usb-n642usb) |
-| **GC2USB** | GameCube → USB | [Guide](docs/adapters/native-input.md#gamecube-to-usb-gc2usb) |
-| **NEOGEO2USB** | Neo Geo arcade stick → USB | [Guide](docs/adapters/native-input.md#neo-geo-to-usb-neogeo2usb) |
-| **N642DC** | N64 → Dreamcast | [Guide](docs/adapters/native-input.md#cross-console-adapters) |
-| **SNES23DO** | SNES → 3DO | [Guide](docs/adapters/native-input.md#cross-console-adapters) |
+| **SNES2USB** | SNES/NES → USB | [Guide](docs/apps/snes2usb.md) |
+| **N642USB** | N64 → USB | [Guide](docs/apps/n642usb.md) |
+| **GC2USB** | GameCube → USB | [Guide](docs/apps/gc2usb.md) |
+| **NEOGEO2USB** | Neo Geo arcade stick → USB | [Guide](docs/apps/neogeo2usb.md) |
+| **N642DC** | N64 → Dreamcast | [Guide](docs/apps/n642dc.md) |
+| **SNES23DO** | SNES → 3DO | [Guide](docs/apps/snes23do.md) |
 
 ### Custom Controllers
 
@@ -173,7 +173,7 @@ GPIO buttons ─────┘    profile_apply()                        └─
 - **Dual-Core** — Core 0 handles input, Core 1 handles timing-critical output (RP2040)
 - **PIO** — Programmable I/O for console protocols (GameCube joybus, Dreamcast maple, etc.)
 
-**[Architecture overview](docs/architecture/overview.md)** | **[Layers & internals](docs/architecture/layers.md)**
+**[Architecture overview](docs/overview/architecture.md)** | **[Data flow](docs/overview/data-flow.md)**
 
 ---
 
@@ -199,9 +199,9 @@ GPIO buttons ─────┘    profile_apply()                        └─
 | **[DIY Builds](docs/hardware/diy.md)** | Build your own, where to buy parts |
 | **[ESP32-S3](docs/platforms/esp32.md)** | ESP-IDF setup, TinyUF2, architecture |
 | **[nRF52840](docs/platforms/nrf52840.md)** | nRF Connect SDK setup, debugging |
-| **[Architecture](docs/architecture/overview.md)** | How it works — data flow, router, I/O layers |
-| **[Layers & Internals](docs/architecture/layers.md)** | Developer deep dive — interfaces, router pipeline, latency |
-| **[Protocol Reference](docs/protocols/)** | 3DO PBus, GameCube Joybus, Nuon Polyface, PCEngine |
+| **[Architecture](docs/overview/architecture.md)** | How it works — data flow, router, I/O layers |
+| **[Data Flow](docs/overview/data-flow.md)** | Input-to-output pipeline walkthrough |
+| **[Protocol Reference](docs/protocols/3DO_PBUS.md)** | 3DO PBus, GameCube Joybus, Nuon Polyface, PCEngine |
 
 ---
 
