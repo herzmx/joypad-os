@@ -7,6 +7,7 @@
 //   - Standard: Composite gamepad + keyboard + mouse (ESP32-BLE-CompositeHID compatible)
 //   - Xbox BLE: Xbox One S / Series X compatible gamepad with rumble
 
+#include "app.h"
 #include "ble_output.h"
 #include "ble_output_keyboard.h"
 #include "ble_output_mouse.h"
@@ -297,9 +298,9 @@ static btstack_packet_callback_registration_t sm_event_callback_registration;
 static const uint8_t adv_data_standard[] = {
     // Flags: general discoverable, BR/EDR not supported
     0x02, BLUETOOTH_DATA_TYPE_FLAGS, 0x06,
-    // Complete local name: "Joypad Controller"
-    0x12, BLUETOOTH_DATA_TYPE_COMPLETE_LOCAL_NAME,
-    'J', 'o', 'y', 'p', 'a', 'd', ' ',
+    // Complete local name: "JoypadOS Controller"
+    0x14, BLUETOOTH_DATA_TYPE_COMPLETE_LOCAL_NAME,
+    'J', 'o', 'y', 'p', 'a', 'd', 'O', 'S', ' ',
     'C', 'o', 'n', 't', 'r', 'o', 'l', 'l', 'e', 'r',
     // 16-bit Service UUIDs: HID Service
     0x03, BLUETOOTH_DATA_TYPE_COMPLETE_LIST_OF_16_BIT_SERVICE_CLASS_UUIDS,
@@ -554,7 +555,7 @@ void ble_output_late_init(void)
         device_information_service_server_set_pnp_id(0x02, 0x045E, 0x0B13, 0x0511);
     } else {
         device_information_service_server_set_manufacturer_name("Joypad");
-        device_information_service_server_set_model_number("USB2BLE");
+        device_information_service_server_set_model_number(APP_NAME);
         device_information_service_server_set_software_revision("1.0.0");
         // PnP ID: Bluetooth SIG (0x01), VID 0xe502, PID 0xbbab, version 1.0.0
         device_information_service_server_set_pnp_id(0x01, 0xe502, 0xbbab, 0x0100);
@@ -601,7 +602,7 @@ void ble_output_late_init(void)
         adv_data = adv_data_xbox;
         adv_data_len = sizeof(adv_data_xbox);
     } else {
-        gap_name = "Joypad Controller";
+        gap_name = "JoypadOS Controller";
         adv_data = adv_data_standard;
         adv_data_len = sizeof(adv_data_standard);
     }
