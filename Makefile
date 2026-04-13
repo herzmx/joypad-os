@@ -284,6 +284,8 @@ help:
 	@echo "  make controller_fisherprice_v2_kb2040 - Fisher Price V2 (analog+shoulders) -> USB HID (KB2040)"
 	@echo "  make controller_alpakka_pico - GPIO/I2C -> USB HID (Pico)"
 	@echo "  make controller_macropad - 12 keys -> USB HID (MacroPad RP2040)"
+	@echo "  make controller_btusb_pico_w - GPIO+JoyWing -> BLE+USB HID (Pico W)"
+	@echo "  make controller_btusb_rp2040_abb - GPIO+USB Host -> USB HID (ABB Passthrough)"
 
 	@echo "  make nes2usb_kb2040     - NES -> USB HID (KB2040)"
 	@echo "  make nes2usb_pico_w     - NES -> USB HID (Pico W)"

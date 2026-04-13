@@ -140,9 +140,11 @@ Convert retro controllers to USB or bridge them to other consoles:
 Wire up GPIO buttons and analog sticks to build your own USB gamepad:
 
 ```bash
-make controller_fisherprice        # Digital buttons → USB HID
-make controller_fisherprice_analog # Buttons + analog stick → USB HID
-make controller_macropad           # Adafruit MacroPad → USB HID
+make controller_fisherprice_v1_kb2040  # Digital buttons → USB HID
+make controller_fisherprice_v2_kb2040  # Buttons + analog stick → USB HID
+make controller_macropad               # Adafruit MacroPad → USB HID
+make controller_btusb_pico_w           # GPIO+JoyWing → BLE+USB HID (Pico W)
+make controller_btusb_rp2040_abb       # GPIO+USB Host → USB HID (ABB Passthrough)
 ```
 
 ---

@@ -3,6 +3,15 @@
 // Pin mappings matching GP2040-CE RP2040AdvancedBreakoutBoard config.
 // Active low buttons (pressed = GPIO low, internal pull-up).
 // I2C OLED on GPIO 0/1, WS2812 LEDs on GPIO 4, 12 LEDs.
+//
+// GP2040-CE board labels → Joypad (W3C) mapping:
+//   K1 (GPIO 12) → B3 (X/Square)     P1 (GPIO 10) → R1 (RB)
+//   K2 (GPIO 11) → B4 (Y/Triangle)   P2 (GPIO  9) → L1 (LB)
+//   K3 (GPIO  8) → B1 (A/Cross)      P3 (GPIO  6) → R2 (RT)
+//   K4 (GPIO  7) → B2 (B/Circle)     P4 (GPIO  5) → L2 (LT)
+//
+// Passthrough variant: USB-A host port on GPIO 23/24 (SMD slider in USB position)
+// SMD sliders: USB/Option (GPIO 23/24 routing), LED/GPIO25 (LED enable)
 
 #ifndef PAD_CONFIG_ABB_H
 #define PAD_CONFIG_ABB_H
