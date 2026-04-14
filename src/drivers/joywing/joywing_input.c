@@ -1,7 +1,9 @@
-// joywing_input.c - Adafruit Joy FeatherWing Input Interface
+// joywing_input.c - Adafruit Joy FeatherWing Input Interface (multi-instance)
 //
-// Reads joystick (2x ADC) and buttons (GPIO bulk) via seesaw protocol.
-// Submits as INPUT_SOURCE_GPIO with dev_addr 0xE0.
+// Supports up to 2 JoyWing modules. Each has a 2-axis joystick + 5 buttons.
+// JoyWing 0: Left stick, D-pad buttons, S1 (Select)
+// JoyWing 1: Right stick, B1-B4 face buttons, S2 (Start)
+// Both submit to the same merged input event via router.
 
 #include "joywing_input.h"
 #include "drivers/seesaw/seesaw.h"
@@ -19,129 +21,176 @@
 #define JOYWING_BTN_Y      10
 #define JOYWING_BTN_SELECT 14
 
-// Joystick ADC channels (seesaw SAMD09 pin-to-channel mapping)
-// Physical pin 2 → ADC channel 0, pin 3 → channel 1, pin 4 → channel 2, etc.
-#define JOYWING_ADC_X      1   // Pin 3 (JOYSTICK_H) → ADC channel 1
-#define JOYWING_ADC_Y      0   // Pin 2 (JOYSTICK_V) → ADC channel 0
+// Joystick ADC channels
+#define JOYWING_ADC_X      1
+#define JOYWING_ADC_Y      0
 
 // Button pin mask for GPIO bulk read
 #define JOYWING_BTN_MASK ((1u << JOYWING_BTN_A) | (1u << JOYWING_BTN_B) | \
                           (1u << JOYWING_BTN_X) | (1u << JOYWING_BTN_Y) | \
                           (1u << JOYWING_BTN_SELECT))
 
-// Device address for router (unique, in the 0xE0+ range for I2C devices)
-#define JOYWING_DEV_ADDR 0xE0
+// Device addresses for router (0xE0+ range for I2C devices)
+#define JOYWING_DEV_ADDR_BASE 0xE0
 
-// State
-static joywing_config_t joywing_cfg;
-static bool config_set = false;
-static seesaw_device_t seesaw;
-static platform_i2c_t i2c_bus;
-static input_event_t joywing_event;
-static bool initialized = false;
+#define JOYWING_MAX_INSTANCES 2
+
+// Per-instance state
+typedef struct {
+    joywing_config_t cfg;
+    seesaw_device_t seesaw;
+    platform_i2c_t i2c_bus;
+    input_event_t event;
+    bool configured;
+    bool initialized;
+    uint32_t last_poll;
+} joywing_instance_t;
+
+static joywing_instance_t instances[JOYWING_MAX_INSTANCES];
+static uint8_t instance_count = 0;
 
 void joywing_input_init_config(const joywing_config_t* config)
 {
-    joywing_cfg = *config;
-    config_set = true;
-}
-
-static void joywing_init(void)
-{
-    if (!config_set) {
-        printf("[joywing] ERROR: config not set, call joywing_input_init_config() first\n");
+    if (instance_count >= JOYWING_MAX_INSTANCES) {
+        printf("[joywing] Max instances (%d) reached\n", JOYWING_MAX_INSTANCES);
         return;
     }
+    instances[instance_count].cfg = *config;
+    instances[instance_count].configured = true;
+    instance_count++;
+}
+
+static void joywing_init_instance(uint8_t idx)
+{
+    joywing_instance_t* jw = &instances[idx];
+    if (!jw->configured) return;
 
     // Initialize I2C bus
     platform_i2c_config_t i2c_cfg = {
-        .bus = joywing_cfg.i2c_bus,
-        .sda_pin = joywing_cfg.sda_pin,
-        .scl_pin = joywing_cfg.scl_pin,
+        .bus = jw->cfg.i2c_bus,
+        .sda_pin = jw->cfg.sda_pin,
+        .scl_pin = jw->cfg.scl_pin,
         .freq_hz = 400000,
     };
-    i2c_bus = platform_i2c_init(&i2c_cfg);
-    if (!i2c_bus) {
-        printf("[joywing] ERROR: I2C init failed\n");
+    jw->i2c_bus = platform_i2c_init(&i2c_cfg);
+    if (!jw->i2c_bus) {
+        printf("[joywing:%d] I2C init failed\n", idx);
         return;
     }
 
     // Initialize seesaw
-    uint8_t addr = joywing_cfg.addr ? joywing_cfg.addr : SEESAW_ADDR_DEFAULT;
-    seesaw_init(&seesaw, i2c_bus, addr);
+    uint8_t addr = jw->cfg.addr ? jw->cfg.addr : SEESAW_ADDR_DEFAULT;
+    seesaw_init(&jw->seesaw, jw->i2c_bus, addr);
 
-    // Check hardware ID
-    uint8_t hw_id = seesaw_get_hw_id(&seesaw);
-    printf("[joywing] Seesaw HW ID: 0x%02X\n", hw_id);
+    uint8_t hw_id = seesaw_get_hw_id(&jw->seesaw);
+    printf("[joywing:%d] Seesaw HW ID: 0x%02X (addr=0x%02X)\n", idx, hw_id, addr);
 
-    // Configure button pins as inputs with pull-ups
-    if (!seesaw_gpio_set_input_pullup(&seesaw, JOYWING_BTN_MASK)) {
-        printf("[joywing] WARNING: GPIO config failed\n");
+    // Configure button pins
+    if (!seesaw_gpio_set_input_pullup(&jw->seesaw, JOYWING_BTN_MASK)) {
+        printf("[joywing:%d] GPIO config failed\n", idx);
     }
 
-    // Initialize input event with proper defaults
-    init_input_event(&joywing_event);
-    joywing_event.dev_addr = JOYWING_DEV_ADDR;
-    joywing_event.instance = 0;
-    joywing_event.type = INPUT_TYPE_GAMEPAD;
-    joywing_event.transport = INPUT_TRANSPORT_I2C;
+    // Initialize input event
+    init_input_event(&jw->event);
+    jw->event.dev_addr = JOYWING_DEV_ADDR_BASE + idx;
+    jw->event.instance = idx;
+    jw->event.type = INPUT_TYPE_GAMEPAD;
+    jw->event.transport = INPUT_TRANSPORT_I2C;
 
-    initialized = true;
-    printf("[joywing] Joy FeatherWing initialized\n");
+    jw->initialized = true;
+    jw->last_poll = 0;
+    printf("[joywing:%d] Initialized\n", idx);
+}
+
+static void joywing_init(void)
+{
+    for (uint8_t i = 0; i < instance_count; i++) {
+        joywing_init_instance(i);
+    }
+    printf("[joywing] %d instance(s) initialized\n", instance_count);
+}
+
+static void joywing_poll_instance(uint8_t idx)
+{
+    joywing_instance_t* jw = &instances[idx];
+    if (!jw->initialized) return;
+
+    // Rate-limit to ~100Hz per instance
+    uint32_t now = platform_time_ms();
+    if (now - jw->last_poll < 10) return;
+    jw->last_poll = now;
+
+    // Read buttons (active low)
+    uint32_t gpio = seesaw_gpio_read_bulk(&jw->seesaw);
+    if (gpio == 0xFFFFFFFF) return;
+
+    uint32_t buttons = 0;
+
+    if (idx == 0) {
+        // JoyWing 0: joystick as D-pad + Select button as S1
+        // Also map physical buttons as D-pad for digital input
+        if (!(gpio & (1u << JOYWING_BTN_A)))      buttons |= JP_BUTTON_DR;   // A → D-Right
+        if (!(gpio & (1u << JOYWING_BTN_B)))      buttons |= JP_BUTTON_DD;   // B → D-Down
+        if (!(gpio & (1u << JOYWING_BTN_X)))      buttons |= JP_BUTTON_DU;   // X → D-Up
+        if (!(gpio & (1u << JOYWING_BTN_Y)))      buttons |= JP_BUTTON_DL;   // Y → D-Left
+        if (!(gpio & (1u << JOYWING_BTN_SELECT))) buttons |= JP_BUTTON_S1;   // Select → S1
+    } else {
+        // JoyWing 1: face buttons + Start
+        if (!(gpio & (1u << JOYWING_BTN_A)))      buttons |= JP_BUTTON_B2;   // A → B2 (Circle)
+        if (!(gpio & (1u << JOYWING_BTN_B)))      buttons |= JP_BUTTON_B1;   // B → B1 (Cross)
+        if (!(gpio & (1u << JOYWING_BTN_X)))      buttons |= JP_BUTTON_B3;   // X → B3 (Square)
+        if (!(gpio & (1u << JOYWING_BTN_Y)))      buttons |= JP_BUTTON_B4;   // Y → B4 (Triangle)
+        if (!(gpio & (1u << JOYWING_BTN_SELECT))) buttons |= JP_BUTTON_S2;   // Select → S2
+    }
+
+    platform_sleep_us(500);
+
+    // Read joystick
+    uint16_t raw_x = seesaw_adc_read(&jw->seesaw, JOYWING_ADC_X);
+    if (raw_x == SEESAW_ADC_ERROR) goto submit;
+
+    platform_sleep_us(500);
+
+    uint16_t raw_y = seesaw_adc_read(&jw->seesaw, JOYWING_ADC_Y);
+    if (raw_y == SEESAW_ADC_ERROR) goto submit;
+
+    if (idx == 0) {
+        // JoyWing 0: left stick
+        jw->event.analog[ANALOG_LX] = (uint8_t)(raw_x >> 2);
+        jw->event.analog[ANALOG_LY] = (uint8_t)(raw_y >> 2);
+    } else {
+        // JoyWing 1: right stick
+        jw->event.analog[ANALOG_RX] = (uint8_t)(raw_x >> 2);
+        jw->event.analog[ANALOG_RY] = (uint8_t)(raw_y >> 2);
+    }
+
+submit:
+    jw->event.buttons = buttons;
+    router_submit_input(&jw->event);
 }
 
 static void joywing_task(void)
 {
-    if (!initialized) return;
-
-    // Rate-limit polling to ~100Hz (every 10ms).
-    // The seesaw ATSAMD09 needs time between I2C commands — polling at
-    // 1kHz (main loop rate) overwhelms it and causes ADC read failures.
-    static uint32_t last_poll = 0;
-    uint32_t now = platform_time_ms();
-    if (now - last_poll < 10) return;
-    last_poll = now;
-
-    // Read buttons (GPIO bulk read, active low)
-    uint32_t gpio = seesaw_gpio_read_bulk(&seesaw);
-    if (gpio == 0xFFFFFFFF) return;  // Read error
-
-    uint32_t buttons = 0;
-    if (!(gpio & (1u << JOYWING_BTN_A)))      buttons |= JP_BUTTON_B2;
-    if (!(gpio & (1u << JOYWING_BTN_B)))      buttons |= JP_BUTTON_B1;
-    if (!(gpio & (1u << JOYWING_BTN_X)))      buttons |= JP_BUTTON_B3;
-    if (!(gpio & (1u << JOYWING_BTN_Y)))      buttons |= JP_BUTTON_B4;
-    if (!(gpio & (1u << JOYWING_BTN_SELECT))) buttons |= JP_BUTTON_S2;
-
-    // Small delay between GPIO and ADC commands — seesaw needs processing time
-    platform_sleep_us(500);
-
-    // Read joystick (10-bit ADC, 0-1023 → 0-255)
-    uint16_t raw_x = seesaw_adc_read(&seesaw, JOYWING_ADC_X);
-    if (raw_x == SEESAW_ADC_ERROR) goto submit;  // ADC failed, keep last analog values
-
-    platform_sleep_us(500);
-
-    uint16_t raw_y = seesaw_adc_read(&seesaw, JOYWING_ADC_Y);
-    if (raw_y == SEESAW_ADC_ERROR) goto submit;  // ADC failed, keep last analog values
-
-    // Scale 10-bit (0-1023) to 8-bit (0-255)
-    joywing_event.analog[ANALOG_LX] = (uint8_t)(raw_x >> 2);
-    joywing_event.analog[ANALOG_LY] = (uint8_t)(raw_y >> 2);
-
-submit:
-    joywing_event.buttons = buttons;
-    router_submit_input(&joywing_event);
+    for (uint8_t i = 0; i < instance_count; i++) {
+        joywing_poll_instance(i);
+    }
 }
 
 static bool joywing_is_connected(void)
 {
-    return initialized;
+    for (uint8_t i = 0; i < instance_count; i++) {
+        if (instances[i].initialized) return true;
+    }
+    return false;
 }
 
 static uint8_t joywing_get_device_count(void)
 {
-    return initialized ? 1 : 0;
+    uint8_t count = 0;
+    for (uint8_t i = 0; i < instance_count; i++) {
+        if (instances[i].initialized) count++;
+    }
+    return count;
 }
 
 const InputInterface joywing_input_interface = {

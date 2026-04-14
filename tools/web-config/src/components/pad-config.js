@@ -104,15 +104,20 @@ export class PadConfigCard {
                             </div>
                             <div class="pad-form-row">
                                 <span class="label">SDA Pin</span>
-                                <input type="number" id="padJoywing${i}Sda" min="0" max="48" value="4">
+                                <input type="number" id="padJoywing${i}Sda" min="0" max="48" value="3">
                             </div>
                             <div class="pad-form-row">
                                 <span class="label">SCL Pin</span>
-                                <input type="number" id="padJoywing${i}Scl" min="0" max="48" value="5">
+                                <input type="number" id="padJoywing${i}Scl" min="0" max="48" value="4">
                             </div>
                             <div class="pad-form-row">
                                 <span class="label">Address</span>
-                                <input type="text" id="padJoywing${i}Addr" value="0x49" style="width: 60px;">
+                                <select id="padJoywing${i}Addr">
+                                    <option value="73">0x49 (Default)</option>
+                                    <option value="74">0x4A</option>
+                                    <option value="75">0x4B</option>
+                                    <option value="76">0x4C</option>
+                                </select>
                             </div>
                         </div>
                     </div>`).join('')}
@@ -188,7 +193,7 @@ export class PadConfigCard {
 
     buildPinSelect(id, value, includeI2C) {
         let html = `<select id="${id}" class="pad-pin-select">`;
-        html += '<option value="-1">Disabled</option>';
+        html += `<option value="-1"${value < 0 ? ' selected' : ''}>Disabled</option>`;
         for (let i = 0; i <= 29; i++) html += `<option value="${i}"${value === i ? ' selected' : ''}>GPIO ${i}</option>`;
         if (includeI2C) {
             for (let i = 100; i <= 115; i++) html += `<option value="${i}"${value === i ? ' selected' : ''}>I2C0 P${i - 100}</option>`;
@@ -282,7 +287,7 @@ export class PadConfigCard {
                     this.el.querySelector(`#padJoywing${i}Bus`).value = slot[0];
                     this.el.querySelector(`#padJoywing${i}Sda`).value = slot[1];
                     this.el.querySelector(`#padJoywing${i}Scl`).value = slot[2];
-                    this.el.querySelector(`#padJoywing${i}Addr`).value = '0x' + (slot[3] || 0x49).toString(16);
+                    this.el.querySelector(`#padJoywing${i}Addr`).value = slot[3] || 73;
                 }
             }
 

@@ -60,9 +60,11 @@ extern void le_device_db_remove(int index);
 #include "drivers/joywing/joywing_input.h"
 #endif
 
+#ifdef CONFIG_PAD_INPUT
+#include "pad/pad_config_flash.h"
+#endif
 #ifdef SENSOR_PAD
 #include "pad/pad_input.h"
-#include "pad/pad_config_flash.h"
 #ifdef PAD_CONFIG_ABB
 #include "pad/configs/abb.h"
 #endif
@@ -197,9 +199,13 @@ void app_init(void)
     button_init();
     button_set_callback(on_button_event);
 
+    // Initialize pad config storage (needed for CDC commands on all platforms)
+#ifdef CONFIG_PAD_INPUT
+    pad_config_flash_init();
+#endif
+
     // Configure pad input (GPIO buttons) — flash config overrides compile-time default
 #ifdef SENSOR_PAD
-    pad_config_flash_init();
     const pad_device_config_t* pad_cfg = pad_config_load_runtime();
 #ifdef PAD_CONFIG_ABB
     if (!pad_cfg) pad_cfg = &pad_config_abb;
@@ -222,21 +228,30 @@ void app_init(void)
     {
         // Use runtime config if available, else compile-time defaults
         bool jw_configured = false;
+#ifdef CONFIG_PAD_INPUT
+        {
+            // Load pad config from flash for JoyWing settings
+            const pad_device_config_t* jw_pad_cfg;
 #ifdef SENSOR_PAD
-        if (pad_cfg) {
+            jw_pad_cfg = pad_cfg;
+#else
+            jw_pad_cfg = pad_config_load_runtime();
+#endif
+            if (jw_pad_cfg) {
             for (int i = 0; i < 2; i++) {
-                if (pad_cfg->joywing[i].sda >= 0) {
+                if (jw_pad_cfg->joywing[i].sda >= 0) {
                     joywing_config_t jw_cfg = {
-                        .i2c_bus = pad_cfg->joywing[i].i2c_bus,
-                        .sda_pin = pad_cfg->joywing[i].sda,
-                        .scl_pin = pad_cfg->joywing[i].scl,
-                        .addr = pad_cfg->joywing[i].addr,
+                        .i2c_bus = jw_pad_cfg->joywing[i].i2c_bus,
+                        .sda_pin = jw_pad_cfg->joywing[i].sda,
+                        .scl_pin = jw_pad_cfg->joywing[i].scl,
+                        .addr = jw_pad_cfg->joywing[i].addr,
                     };
                     joywing_input_init_config(&jw_cfg);
                     printf("[app:controller_btusb] JoyWing %d (bus=%d, SDA=%d, SCL=%d, addr=0x%02X)\n",
-                           i, jw_cfg.i2c_bus, jw_cfg.sda_pin, jw_cfg.scl_pin, pad_cfg->joywing[i].addr);
+                           i, jw_cfg.i2c_bus, jw_cfg.sda_pin, jw_cfg.scl_pin, jw_pad_cfg->joywing[i].addr);
                     jw_configured = true;
                 }
+            }
             }
         }
 #endif

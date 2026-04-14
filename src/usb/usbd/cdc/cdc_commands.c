@@ -1577,6 +1577,8 @@ static void cmd_pad_config_set(const char* json)
         config.r3  = buttons[PAD_BTN_R3];
         config.a1  = buttons[PAD_BTN_A1];
         config.a2  = buttons[PAD_BTN_A2];
+        config.a3  = buttons[PAD_BTN_A3];
+        config.a4  = buttons[PAD_BTN_A4];
         config.l4  = buttons[PAD_BTN_L4];
         config.r4  = buttons[PAD_BTN_R4];
     }
