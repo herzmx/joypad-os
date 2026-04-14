@@ -1808,7 +1808,7 @@ static void packet_handler(const cdc_packet_t* packet)
     }
 
     // Null-terminate payload for string operations
-    char json[CDC_MAX_PAYLOAD + 1];
+    static char json[CDC_MAX_PAYLOAD + 1];
     memcpy(json, packet->payload, packet->length);
     json[packet->length] = '\0';
 

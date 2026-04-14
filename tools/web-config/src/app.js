@@ -43,6 +43,7 @@ class JoypadConfigApp {
         this.debugStreaming = false;
         this.currentPage = 'device-info';
         this.hasPadConfig = false;
+        this.loaded = false;
 
         // Header / connection UI
         this.statusDot = document.getElementById('statusDot');
@@ -171,7 +172,7 @@ class JoypadConfigApp {
         this.currentPage = pageId;
 
         // Auto-start streaming when visiting input-test
-        if (pageId === 'input-test' && !this.inputTest.streaming && this.protocol.connected) {
+        if (pageId === 'input-test' && !this.inputTest.streaming && this.protocol.connected && this.loaded) {
             this.inputTest.toggleStreaming();
         }
 
@@ -322,7 +323,8 @@ class JoypadConfigApp {
         this.hasPadConfig = padCard && padCard.style.display !== 'none';
         this.updateNavVisibility();
         await this.profiles.load();
-        // Navigate to default page
+        this.loaded = true;
+        // Navigate to default page (may auto-start streaming if input-test)
         this.navigateTo(this.getInitialPage());
     }
 
