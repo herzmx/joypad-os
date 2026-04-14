@@ -465,6 +465,8 @@ elseif(APP_TYPE STREQUAL "controller_btusb")
         CONFIG_USB=1
         CONFIG_PAD_INPUT=1
         SENSOR_PAD=1
+        WS2812_PIN=16
+        WS2812_NUM_PIXELS=1
         DISABLE_USB_HOST=1
         BTSTACK_USE_NRF=1
         ENABLE_BTSTACK=1
