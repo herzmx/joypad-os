@@ -254,6 +254,7 @@ class JoypadConfigApp {
         this.connectBtn.textContent = connected ? 'Disconnect' : 'Connect';
         this.connectPrompt.classList.toggle('hidden', connected);
         this.mainContent.classList.toggle('hidden', !connected);
+        document.getElementById('headerInfo').style.display = connected ? '' : 'none';
     }
 
     async toggleConnection() {
