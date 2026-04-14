@@ -1,9 +1,9 @@
 // joywing_input.c - Adafruit Joy FeatherWing Input Interface (multi-instance)
 //
-// Supports up to 2 JoyWing modules. Each has a 2-axis joystick + 5 buttons.
+// Supports up to 2 JoyWing modules that merge into a single gamepad:
 // JoyWing 0: Left stick, D-pad buttons, S1 (Select)
 // JoyWing 1: Right stick, B1-B4 face buttons, S2 (Start)
-// Both submit to the same merged input event via router.
+// Both contribute to one merged input_event_t submitted to the router.
 
 #include "joywing_input.h"
 #include "drivers/seesaw/seesaw.h"
@@ -30,17 +30,20 @@
                           (1u << JOYWING_BTN_X) | (1u << JOYWING_BTN_Y) | \
                           (1u << JOYWING_BTN_SELECT))
 
-// Device addresses for router (0xE0+ range for I2C devices)
-#define JOYWING_DEV_ADDR_BASE 0xE0
+// Device address — 0xE0 range for standalone, 0xF0 when merged with pad
+#define JOYWING_DEV_ADDR_STANDALONE 0xE0
+#define JOYWING_DEV_ADDR_MERGED    0xF0
+
+// When true, joywing_task skips router_submit_input (pad_input merges us)
+static bool merge_with_pad = false;
 
 #define JOYWING_MAX_INSTANCES 2
 
-// Per-instance state
+// Per-instance hardware state
 typedef struct {
     joywing_config_t cfg;
     seesaw_device_t seesaw;
     platform_i2c_t i2c_bus;
-    input_event_t event;
     bool configured;
     bool initialized;
     uint32_t last_poll;
@@ -48,6 +51,10 @@ typedef struct {
 
 static joywing_instance_t instances[JOYWING_MAX_INSTANCES];
 static uint8_t instance_count = 0;
+
+// Single merged input event for all JoyWing instances
+static input_event_t joywing_event;
+static bool any_initialized = false;
 
 void joywing_input_init_config(const joywing_config_t* config)
 {
@@ -65,7 +72,6 @@ static void joywing_init_instance(uint8_t idx)
     joywing_instance_t* jw = &instances[idx];
     if (!jw->configured) return;
 
-    // Initialize I2C bus
     platform_i2c_config_t i2c_cfg = {
         .bus = jw->cfg.i2c_bus,
         .sda_pin = jw->cfg.sda_pin,
@@ -78,44 +84,43 @@ static void joywing_init_instance(uint8_t idx)
         return;
     }
 
-    // Initialize seesaw
     uint8_t addr = jw->cfg.addr ? jw->cfg.addr : SEESAW_ADDR_DEFAULT;
     seesaw_init(&jw->seesaw, jw->i2c_bus, addr);
 
     uint8_t hw_id = seesaw_get_hw_id(&jw->seesaw);
     printf("[joywing:%d] Seesaw HW ID: 0x%02X (addr=0x%02X)\n", idx, hw_id, addr);
 
-    // Configure button pins
     if (!seesaw_gpio_set_input_pullup(&jw->seesaw, JOYWING_BTN_MASK)) {
         printf("[joywing:%d] GPIO config failed\n", idx);
     }
 
-    // Initialize input event
-    init_input_event(&jw->event);
-    jw->event.dev_addr = JOYWING_DEV_ADDR_BASE + idx;
-    jw->event.instance = idx;
-    jw->event.type = INPUT_TYPE_GAMEPAD;
-    jw->event.transport = INPUT_TRANSPORT_I2C;
-
     jw->initialized = true;
     jw->last_poll = 0;
+    any_initialized = true;
     printf("[joywing:%d] Initialized\n", idx);
 }
 
 static void joywing_init(void)
 {
+    // Initialize merged event (shared by all instances)
+    init_input_event(&joywing_event);
+    joywing_event.dev_addr = merge_with_pad ? JOYWING_DEV_ADDR_MERGED : JOYWING_DEV_ADDR_STANDALONE;
+    joywing_event.instance = 0;
+    joywing_event.type = INPUT_TYPE_GAMEPAD;
+    joywing_event.transport = INPUT_TRANSPORT_GPIO;
+
     for (uint8_t i = 0; i < instance_count; i++) {
         joywing_init_instance(i);
     }
     printf("[joywing] %d instance(s) initialized\n", instance_count);
 }
 
+// Poll one instance and merge its data into the shared event
 static void joywing_poll_instance(uint8_t idx)
 {
     joywing_instance_t* jw = &instances[idx];
     if (!jw->initialized) return;
 
-    // Rate-limit to ~100Hz per instance
     uint32_t now = platform_time_ms();
     if (now - jw->last_poll < 10) return;
     jw->last_poll = now;
@@ -124,73 +129,77 @@ static void joywing_poll_instance(uint8_t idx)
     uint32_t gpio = seesaw_gpio_read_bulk(&jw->seesaw);
     if (gpio == 0xFFFFFFFF) return;
 
-    uint32_t buttons = 0;
-
     if (idx == 0) {
-        // JoyWing 0: joystick as D-pad + Select button as S1
-        // Also map physical buttons as D-pad for digital input
-        if (!(gpio & (1u << JOYWING_BTN_A)))      buttons |= JP_BUTTON_DR;   // A → D-Right
-        if (!(gpio & (1u << JOYWING_BTN_B)))      buttons |= JP_BUTTON_DD;   // B → D-Down
-        if (!(gpio & (1u << JOYWING_BTN_X)))      buttons |= JP_BUTTON_DU;   // X → D-Up
-        if (!(gpio & (1u << JOYWING_BTN_Y)))      buttons |= JP_BUTTON_DL;   // Y → D-Left
-        if (!(gpio & (1u << JOYWING_BTN_SELECT))) buttons |= JP_BUTTON_S1;   // Select → S1
+        // JoyWing 0: D-pad + S1
+        // Clear this instance's button bits before setting new ones
+        joywing_event.buttons &= ~(JP_BUTTON_DU | JP_BUTTON_DD | JP_BUTTON_DL | JP_BUTTON_DR | JP_BUTTON_S1);
+        if (!(gpio & (1u << JOYWING_BTN_Y)))      joywing_event.buttons |= JP_BUTTON_DU;
+        if (!(gpio & (1u << JOYWING_BTN_B)))      joywing_event.buttons |= JP_BUTTON_DD;
+        if (!(gpio & (1u << JOYWING_BTN_X)))      joywing_event.buttons |= JP_BUTTON_DL;
+        if (!(gpio & (1u << JOYWING_BTN_A)))      joywing_event.buttons |= JP_BUTTON_DR;
+        if (!(gpio & (1u << JOYWING_BTN_SELECT))) joywing_event.buttons |= JP_BUTTON_S1;
     } else {
-        // JoyWing 1: face buttons + Start
-        if (!(gpio & (1u << JOYWING_BTN_A)))      buttons |= JP_BUTTON_B2;   // A → B2 (Circle)
-        if (!(gpio & (1u << JOYWING_BTN_B)))      buttons |= JP_BUTTON_B1;   // B → B1 (Cross)
-        if (!(gpio & (1u << JOYWING_BTN_X)))      buttons |= JP_BUTTON_B3;   // X → B3 (Square)
-        if (!(gpio & (1u << JOYWING_BTN_Y)))      buttons |= JP_BUTTON_B4;   // Y → B4 (Triangle)
-        if (!(gpio & (1u << JOYWING_BTN_SELECT))) buttons |= JP_BUTTON_S2;   // Select → S2
+        // JoyWing 1: face buttons + S2
+        joywing_event.buttons &= ~(JP_BUTTON_B1 | JP_BUTTON_B2 | JP_BUTTON_B3 | JP_BUTTON_B4 | JP_BUTTON_S2);
+        if (!(gpio & (1u << JOYWING_BTN_B)))      joywing_event.buttons |= JP_BUTTON_B1;
+        if (!(gpio & (1u << JOYWING_BTN_A)))      joywing_event.buttons |= JP_BUTTON_B2;
+        if (!(gpio & (1u << JOYWING_BTN_X)))      joywing_event.buttons |= JP_BUTTON_B3;
+        if (!(gpio & (1u << JOYWING_BTN_Y)))      joywing_event.buttons |= JP_BUTTON_B4;
+        if (!(gpio & (1u << JOYWING_BTN_SELECT))) joywing_event.buttons |= JP_BUTTON_S2;
     }
 
     platform_sleep_us(500);
 
     // Read joystick
     uint16_t raw_x = seesaw_adc_read(&jw->seesaw, JOYWING_ADC_X);
-    if (raw_x == SEESAW_ADC_ERROR) goto submit;
-
-    platform_sleep_us(500);
-
-    uint16_t raw_y = seesaw_adc_read(&jw->seesaw, JOYWING_ADC_Y);
-    if (raw_y == SEESAW_ADC_ERROR) goto submit;
-
-    if (idx == 0) {
-        // JoyWing 0: left stick
-        jw->event.analog[ANALOG_LX] = (uint8_t)(raw_x >> 2);
-        jw->event.analog[ANALOG_LY] = (uint8_t)(raw_y >> 2);
-    } else {
-        // JoyWing 1: right stick
-        jw->event.analog[ANALOG_RX] = (uint8_t)(raw_x >> 2);
-        jw->event.analog[ANALOG_RY] = (uint8_t)(raw_y >> 2);
+    if (raw_x != SEESAW_ADC_ERROR) {
+        platform_sleep_us(500);
+        uint16_t raw_y = seesaw_adc_read(&jw->seesaw, JOYWING_ADC_Y);
+        if (raw_y != SEESAW_ADC_ERROR) {
+            if (idx == 0) {
+                joywing_event.analog[ANALOG_LX] = (uint8_t)(raw_x >> 2);
+                joywing_event.analog[ANALOG_LY] = (uint8_t)(raw_y >> 2);
+            } else {
+                joywing_event.analog[ANALOG_RX] = (uint8_t)(raw_x >> 2);
+                joywing_event.analog[ANALOG_RY] = (uint8_t)(raw_y >> 2);
+            }
+        }
     }
+}
 
-submit:
-    jw->event.buttons = buttons;
-    router_submit_input(&jw->event);
+void joywing_set_merge_with_pad(bool merge)
+{
+    merge_with_pad = merge;
+}
+
+const input_event_t* joywing_get_event(void)
+{
+    return any_initialized ? &joywing_event : NULL;
 }
 
 static void joywing_task(void)
 {
+    if (!any_initialized) return;
+
+    // Poll all instances (each has its own rate limit)
     for (uint8_t i = 0; i < instance_count; i++) {
         joywing_poll_instance(i);
+    }
+
+    // Only submit to router when standalone (not merged with pad)
+    if (!merge_with_pad) {
+        router_submit_input(&joywing_event);
     }
 }
 
 static bool joywing_is_connected(void)
 {
-    for (uint8_t i = 0; i < instance_count; i++) {
-        if (instances[i].initialized) return true;
-    }
-    return false;
+    return any_initialized;
 }
 
 static uint8_t joywing_get_device_count(void)
 {
-    uint8_t count = 0;
-    for (uint8_t i = 0; i < instance_count; i++) {
-        if (instances[i].initialized) count++;
-    }
-    return count;
+    return any_initialized ? 1 : 0;  // Always 1 merged gamepad
 }
 
 const InputInterface joywing_input_interface = {

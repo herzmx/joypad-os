@@ -178,6 +178,10 @@ void app_main(void)
             }
         }
 
+        // Flush CDC streaming data immediately after input polling
+        // (don't wait for output task's tud_task_ext call)
+        tud_task_ext(0, false);
+
         // Run output interface tasks
         for (uint8_t i = 0; i < output_count; i++) {
             if (outputs[i] && outputs[i]->task) {

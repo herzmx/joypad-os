@@ -266,6 +266,14 @@ void app_init(void)
             printf("[app:controller_btusb] JoyWing configured (bus=%d, SDA=%d, SCL=%d)\n",
                    JOYWING_I2C_BUS, JOYWING_SDA_PIN, JOYWING_SCL_PIN);
         }
+
+#ifdef SENSOR_PAD
+        // When both pad and JoyWing are active, merge JoyWing into pad's event
+        if (jw_configured) {
+            joywing_set_merge_with_pad(true);
+            printf("[app:controller_btusb] JoyWing merging with pad input\n");
+        }
+#endif
     }
 #endif
 

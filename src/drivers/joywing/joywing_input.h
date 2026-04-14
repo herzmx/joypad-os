@@ -20,6 +20,13 @@ typedef struct {
 // Set configuration before init (call from app_init)
 void joywing_input_init_config(const joywing_config_t* config);
 
+// Set merge mode — when true, joywing_task won't submit to router.
+// The app should call joywing_get_event() and merge with pad input.
+void joywing_set_merge_with_pad(bool merge);
+
+// Get the current merged JoyWing input event (buttons + axes from all instances)
+const input_event_t* joywing_get_event(void);
+
 // Joy FeatherWing input interface
 extern const InputInterface joywing_input_interface;
 

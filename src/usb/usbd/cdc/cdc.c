@@ -216,6 +216,11 @@ uint32_t cdc_data_write(const uint8_t* buffer, uint32_t bufsize)
     if (!tud_cdc_n_connected(CDC_PORT_DATA)) {
         return 0;
     }
+    // Check available space — drop the entire packet rather than partial write
+    uint32_t avail = tud_cdc_n_write_available(CDC_PORT_DATA);
+    if (avail < bufsize) {
+        return 0;  // Drop packet, don't corrupt the stream
+    }
     uint32_t written = tud_cdc_n_write(CDC_PORT_DATA, buffer, bufsize);
     tud_cdc_n_write_flush(CDC_PORT_DATA);
     return written;

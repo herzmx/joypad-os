@@ -16,6 +16,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef SENSOR_JOYWING
+#include "drivers/joywing/joywing_input.h"
+#endif
+
 // ============================================================================
 // I2C I/O EXPANDER REGISTERS (PCA9555/TCA9555 compatible)
 // ============================================================================
@@ -529,6 +533,23 @@ static void pad_input_task(void) {
     // Poll all registered devices
     for (uint8_t i = 0; i < pad_device_count; i++) {
         pad_poll_device(i);
+
+#ifdef SENSOR_JOYWING
+        // Merge JoyWing data into pad event (combined custom controller)
+        const input_event_t* jw = joywing_get_event();
+        if (jw) {
+            pad_events[i].buttons |= jw->buttons;
+            // JoyWing analog overwrites pad analog (JoyWing has priority for sticks)
+            if (jw->analog[ANALOG_LX] != 128 || jw->analog[ANALOG_LY] != 128) {
+                pad_events[i].analog[ANALOG_LX] = jw->analog[ANALOG_LX];
+                pad_events[i].analog[ANALOG_LY] = jw->analog[ANALOG_LY];
+            }
+            if (jw->analog[ANALOG_RX] != 128 || jw->analog[ANALOG_RY] != 128) {
+                pad_events[i].analog[ANALOG_RX] = jw->analog[ANALOG_RX];
+                pad_events[i].analog[ANALOG_RY] = jw->analog[ANALOG_RY];
+            }
+        }
+#endif
 
         // Submit to router
         router_submit_input(&pad_events[i]);

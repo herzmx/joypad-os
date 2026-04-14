@@ -14,6 +14,7 @@
 // Pad input config (for GPIO device name lookup)
 #ifdef CONFIG_PAD_INPUT
 #include "pad/pad_input.h"
+#include "pad/pad_config_flash.h"
 #endif
 
 // CDC input streaming (optional, for web config)
@@ -136,10 +137,13 @@ static const char* get_device_name(const input_event_t* event) {
 #endif
 #ifdef CONFIG_PAD_INPUT
         case INPUT_TRANSPORT_GPIO: {
-            // Return pad config name for GPIO pad devices
+            // Return pad config name for custom controller devices
             uint8_t pad_idx = event->dev_addr - 0xF0;
             const pad_device_config_t* cfg = pad_input_get_config(pad_idx);
-            return cfg && cfg->name ? cfg->name : "GPIO Pad";
+            if (cfg && cfg->name) return cfg->name;
+            // Fallback: check flash config name
+            const char* flash_name = pad_config_get_name();
+            return flash_name ? flash_name : "Controller";
         }
 #endif
         default:

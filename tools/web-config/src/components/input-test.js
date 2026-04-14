@@ -212,8 +212,8 @@ export class InputTestCard {
                 for (const p of result.players) {
                     const player = p.slot !== undefined ? p.slot : 0;
                     this.ensurePlayerGroup(player);
-                    const src = p.transport || '';
-                    this.ensureInputSource(player, p.slot + 1, p.name || 'Unknown', src);
+                    // Don't pre-create input source rows — streaming events
+                    // will create them with the correct dev_addr and name
                 }
             }
         } catch (e) {
