@@ -81,15 +81,18 @@ typedef struct {
     // PIO-USB D+ pin (D- is always D+1). PAD_PIN_DISABLED = no USB host.
     int8_t usb_host_dp;
 
-    // JoyWing I2C config (3 bytes)
-    // PAD_PIN_DISABLED for sda/scl = disabled
-    int8_t joywing_i2c_bus;     // I2C bus (0 or 1, -1 = disabled)
-    int8_t joywing_sda;         // SDA pin
-    int8_t joywing_scl;         // SCL pin
+    // JoyWing I2C config (6 bytes — 2 slots × 3 bytes each)
+    // PAD_PIN_DISABLED for bus = disabled
+    #define PAD_JOYWING_MAX 2
+    struct {
+        int8_t i2c_bus;         // I2C bus (0 or 1, -1 = disabled)
+        int8_t sda;             // SDA pin
+        int8_t scl;             // SCL pin
+    } joywing[2];
 
     // Reserved for future use (pad to 256 bytes)
-    // 256 - 8 - 32 - 1 - 2 - 1 - 44 - 2 - 4 - 2 - 2 - 6 - 3 - 1 - 3 = 145
-    uint8_t reserved[145];
+    // 256 - 8 - 32 - 1 - 2 - 1 - 44 - 2 - 4 - 2 - 2 - 6 - 3 - 1 - 6 = 142
+    uint8_t reserved[142];
 } pad_config_flash_t;
 
 _Static_assert(sizeof(pad_config_flash_t) == 256, "pad_config_flash_t must be exactly 256 bytes");

@@ -139,10 +139,12 @@ typedef struct {
     // USB host PIO-USB (PAD_PIN_DISABLED = no USB host)
     int8_t usb_host_dp;         // PIO-USB D+ pin (D- is always D+1)
 
-    // JoyWing seesaw I2C (PAD_PIN_DISABLED = no JoyWing)
-    int8_t joywing_i2c_bus;     // I2C bus (0 or 1, -1 = disabled)
-    int8_t joywing_sda;         // SDA pin
-    int8_t joywing_scl;         // SCL pin
+    // JoyWing seesaw I2C (up to 2, PAD_PIN_DISABLED bus = disabled)
+    struct {
+        int8_t i2c_bus;         // I2C bus (0 or 1, -1 = disabled)
+        int8_t sda;             // SDA pin
+        int8_t scl;             // SCL pin
+    } joywing[2];
 } pad_device_config_t;
 
 // ============================================================================
@@ -215,9 +217,10 @@ extern const InputInterface pad_input_interface;
     .led_count = 0, \
     .qwiic_i2c_inst = PAD_PIN_DISABLED, \
     .usb_host_dp = PAD_PIN_DISABLED, \
-    .joywing_i2c_bus = PAD_PIN_DISABLED, \
-    .joywing_sda = PAD_PIN_DISABLED, \
-    .joywing_scl = PAD_PIN_DISABLED, \
+    .joywing = { \
+        { PAD_PIN_DISABLED, PAD_PIN_DISABLED, PAD_PIN_DISABLED }, \
+        { PAD_PIN_DISABLED, PAD_PIN_DISABLED, PAD_PIN_DISABLED }, \
+    }, \
 }
 
 #endif // PAD_INPUT_H

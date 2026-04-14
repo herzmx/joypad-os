@@ -243,9 +243,11 @@ void pad_config_to_flash(const pad_device_config_t* config, pad_config_flash_t* 
     flash->usb_host_dp = config->usb_host_dp;
 
     // JoyWing
-    flash->joywing_i2c_bus = config->joywing_i2c_bus;
-    flash->joywing_sda = config->joywing_sda;
-    flash->joywing_scl = config->joywing_scl;
+    for (int i = 0; i < 2; i++) {
+        flash->joywing[i].i2c_bus = config->joywing[i].i2c_bus;
+        flash->joywing[i].sda = config->joywing[i].sda;
+        flash->joywing[i].scl = config->joywing[i].scl;
+    }
 }
 
 const pad_device_config_t* pad_config_from_flash(const pad_config_flash_t* flash)
@@ -330,9 +332,11 @@ const pad_device_config_t* pad_config_from_flash(const pad_config_flash_t* flash
     runtime_config.usb_host_dp = flash->usb_host_dp;
 
     // JoyWing
-    runtime_config.joywing_i2c_bus = flash->joywing_i2c_bus;
-    runtime_config.joywing_sda = flash->joywing_sda;
-    runtime_config.joywing_scl = flash->joywing_scl;
+    for (int i = 0; i < 2; i++) {
+        runtime_config.joywing[i].i2c_bus = flash->joywing[i].i2c_bus;
+        runtime_config.joywing[i].sda = flash->joywing[i].sda;
+        runtime_config.joywing[i].scl = flash->joywing[i].scl;
+    }
 
     return &runtime_config;
 }

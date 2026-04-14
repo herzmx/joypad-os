@@ -1505,9 +1505,10 @@ static void cmd_pad_config_get(const char* json)
     // USB host
     pos += snprintf(response_buf + pos, sizeof(response_buf) - pos,
                     ",\"usb_host_dp\":%d"
-                    ",\"joywing_bus\":%d,\"joywing_sda\":%d,\"joywing_scl\":%d",
+                    ",\"joywing\":[[%d,%d,%d],[%d,%d,%d]]",
                     flash_data.usb_host_dp,
-                    flash_data.joywing_i2c_bus, flash_data.joywing_sda, flash_data.joywing_scl);
+                    flash_data.joywing[0].i2c_bus, flash_data.joywing[0].sda, flash_data.joywing[0].scl,
+                    flash_data.joywing[1].i2c_bus, flash_data.joywing[1].sda, flash_data.joywing[1].scl);
 
     pos += snprintf(response_buf + pos, sizeof(response_buf) - pos, "}");
 
@@ -1624,13 +1625,23 @@ static void cmd_pad_config_set(const char* json)
     config.usb_host_dp = PAD_PIN_DISABLED;
     if (json_get_int(json, "usb_host_dp", &ival)) config.usb_host_dp = (int8_t)ival;
 
-    // JoyWing
-    config.joywing_i2c_bus = PAD_PIN_DISABLED;
-    config.joywing_sda = PAD_PIN_DISABLED;
-    config.joywing_scl = PAD_PIN_DISABLED;
-    if (json_get_int(json, "joywing_bus", &ival)) config.joywing_i2c_bus = (int8_t)ival;
-    if (json_get_int(json, "joywing_sda", &ival)) config.joywing_sda = (int8_t)ival;
-    if (json_get_int(json, "joywing_scl", &ival)) config.joywing_scl = (int8_t)ival;
+    // JoyWing (array of [bus,sda,scl] pairs)
+    for (int i = 0; i < 2; i++) {
+        config.joywing[i].i2c_bus = PAD_PIN_DISABLED;
+        config.joywing[i].sda = PAD_PIN_DISABLED;
+        config.joywing[i].scl = PAD_PIN_DISABLED;
+    }
+    {
+        char key[16];
+        for (int i = 0; i < 2; i++) {
+            snprintf(key, sizeof(key), "joywing%d_bus", i);
+            if (json_get_int(json, key, &ival)) config.joywing[i].i2c_bus = (int8_t)ival;
+            snprintf(key, sizeof(key), "joywing%d_sda", i);
+            if (json_get_int(json, key, &ival)) config.joywing[i].sda = (int8_t)ival;
+            snprintf(key, sizeof(key), "joywing%d_scl", i);
+            if (json_get_int(json, key, &ival)) config.joywing[i].scl = (int8_t)ival;
+        }
+    }
 
     // Save to flash
     pad_config_save(&config);

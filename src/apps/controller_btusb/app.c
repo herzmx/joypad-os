@@ -221,24 +221,35 @@ void app_init(void)
 #ifdef SENSOR_JOYWING
     {
         // Use runtime config if available, else compile-time defaults
-        int8_t jw_bus = JOYWING_I2C_BUS;
-        int8_t jw_sda = JOYWING_SDA_PIN;
-        int8_t jw_scl = JOYWING_SCL_PIN;
+        bool jw_configured = false;
 #ifdef SENSOR_PAD
-        if (pad_cfg && pad_cfg->joywing_i2c_bus >= 0) {
-            jw_bus = pad_cfg->joywing_i2c_bus;
-            jw_sda = pad_cfg->joywing_sda;
-            jw_scl = pad_cfg->joywing_scl;
+        if (pad_cfg) {
+            for (int i = 0; i < 2; i++) {
+                if (pad_cfg->joywing[i].i2c_bus >= 0) {
+                    joywing_config_t jw_cfg = {
+                        .i2c_bus = pad_cfg->joywing[i].i2c_bus,
+                        .sda_pin = pad_cfg->joywing[i].sda,
+                        .scl_pin = pad_cfg->joywing[i].scl,
+                    };
+                    joywing_input_init_config(&jw_cfg);
+                    printf("[app:controller_btusb] JoyWing %d configured (bus=%d, SDA=%d, SCL=%d)\n",
+                           i, jw_cfg.i2c_bus, jw_cfg.sda_pin, jw_cfg.scl_pin);
+                    jw_configured = true;
+                }
+            }
         }
 #endif
-        joywing_config_t jw_cfg = {
-            .i2c_bus = jw_bus,
-            .sda_pin = jw_sda,
-            .scl_pin = jw_scl,
-        };
-        joywing_input_init_config(&jw_cfg);
-        printf("[app:controller_btusb] JoyWing configured (bus=%d, SDA=%d, SCL=%d)\n",
-               jw_bus, jw_sda, jw_scl);
+        if (!jw_configured) {
+            // Fall back to compile-time defaults
+            joywing_config_t jw_cfg = {
+                .i2c_bus = JOYWING_I2C_BUS,
+                .sda_pin = JOYWING_SDA_PIN,
+                .scl_pin = JOYWING_SCL_PIN,
+            };
+            joywing_input_init_config(&jw_cfg);
+            printf("[app:controller_btusb] JoyWing configured (bus=%d, SDA=%d, SCL=%d)\n",
+                   JOYWING_I2C_BUS, JOYWING_SDA_PIN, JOYWING_SCL_PIN);
+        }
     }
 #endif
 

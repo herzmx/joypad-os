@@ -117,9 +117,10 @@ static const pad_device_config_t pad_config_abb = {
     .usb_host_dp = 23,
 
     // JoyWing on I2C0 (GP4=SDA, GP5=SCL)
-    .joywing_i2c_bus = 0,
-    .joywing_sda = 4,
-    .joywing_scl = 5,
+    .joywing = {
+        { .i2c_bus = 0, .sda = 4, .scl = 5 },
+        { .i2c_bus = PAD_PIN_DISABLED, .sda = PAD_PIN_DISABLED, .scl = PAD_PIN_DISABLED },
+    },
 };
 
 #endif // PAD_CONFIG_ABB_H

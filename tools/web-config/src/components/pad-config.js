@@ -85,30 +85,33 @@ export class PadConfigCard {
                 <!-- Hardware Tab -->
                 <div class="sub-tab-content" id="tabHardware" data-tab="hardware">
                     <h3 style="margin-bottom: 8px;">JoyWing (Seesaw I2C)</h3>
-                    <div class="toggle-row" style="margin-bottom: 8px;">
-                        <label class="toggle">
-                            <input type="checkbox" id="padJoywingEnabled">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <span>Enable JoyWing</span>
-                    </div>
-                    <div id="padJoywingPins" style="display:none;">
-                        <div class="pad-form-row">
-                            <span class="label">I2C Bus</span>
-                            <select id="padJoywingBus">
-                                <option value="0">I2C0</option>
-                                <option value="1">I2C1</option>
-                            </select>
+                    ${[0,1].map(i => `
+                    <div style="margin-bottom: 12px;">
+                        <div class="toggle-row" style="margin-bottom: 8px;">
+                            <label class="toggle">
+                                <input type="checkbox" id="padJoywing${i}Enabled" data-jw="${i}">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>JoyWing ${i + 1}</span>
                         </div>
-                        <div class="pad-form-row">
-                            <span class="label">SDA Pin</span>
-                            <input type="number" id="padJoywingSda" min="0" max="29" value="4">
+                        <div id="padJoywing${i}Pins" style="display:none;">
+                            <div class="pad-form-row">
+                                <span class="label">I2C Bus</span>
+                                <select id="padJoywing${i}Bus">
+                                    <option value="0">I2C0</option>
+                                    <option value="1">I2C1</option>
+                                </select>
+                            </div>
+                            <div class="pad-form-row">
+                                <span class="label">SDA Pin</span>
+                                <input type="number" id="padJoywing${i}Sda" min="0" max="29" value="4">
+                            </div>
+                            <div class="pad-form-row">
+                                <span class="label">SCL Pin</span>
+                                <input type="number" id="padJoywing${i}Scl" min="0" max="29" value="5">
+                            </div>
                         </div>
-                        <div class="pad-form-row">
-                            <span class="label">SCL Pin</span>
-                            <input type="number" id="padJoywingScl" min="0" max="29" value="5">
-                        </div>
-                    </div>
+                    </div>`).join('')}
 
                     <h3 style="margin-top: 12px; margin-bottom: 8px;">I2C Expander</h3>
                     <div class="pad-form-row">
@@ -160,10 +163,12 @@ export class PadConfigCard {
             });
         });
 
-        this.el.querySelector('#padJoywingEnabled').addEventListener('change', () => {
-            this.el.querySelector('#padJoywingPins').style.display =
-                this.el.querySelector('#padJoywingEnabled').checked ? '' : 'none';
-        });
+        for (let i = 0; i < 2; i++) {
+            this.el.querySelector(`#padJoywing${i}Enabled`).addEventListener('change', () => {
+                this.el.querySelector(`#padJoywing${i}Pins`).style.display =
+                    this.el.querySelector(`#padJoywing${i}Enabled`).checked ? '' : 'none';
+            });
+        }
         this.el.querySelector('#padSaveBtn').addEventListener('click', () => this.save());
         this.el.querySelector('#padResetBtn').addEventListener('click', () => this.reset());
         this.el.querySelector('#padDeadzone').addEventListener('input', (e) => {
@@ -261,14 +266,18 @@ export class PadConfigCard {
             this.el.querySelector('#padSpeakerPin').value = config.speaker_pin !== undefined ? config.speaker_pin : -1;
             this.el.querySelector('#padSpeakerEnablePin').value = config.speaker_enable_pin !== undefined ? config.speaker_enable_pin : -1;
 
-            // JoyWing
-            const jwEnabled = config.joywing_bus !== undefined && config.joywing_bus >= 0;
-            this.el.querySelector('#padJoywingEnabled').checked = jwEnabled;
-            this.el.querySelector('#padJoywingPins').style.display = jwEnabled ? '' : 'none';
-            if (jwEnabled) {
-                this.el.querySelector('#padJoywingBus').value = config.joywing_bus;
-                this.el.querySelector('#padJoywingSda').value = config.joywing_sda;
-                this.el.querySelector('#padJoywingScl').value = config.joywing_scl;
+            // JoyWing (array of [bus, sda, scl])
+            const jw = config.joywing || [];
+            for (let i = 0; i < 2; i++) {
+                const slot = jw[i] || [-1, -1, -1];
+                const enabled = slot[0] >= 0;
+                this.el.querySelector(`#padJoywing${i}Enabled`).checked = enabled;
+                this.el.querySelector(`#padJoywing${i}Pins`).style.display = enabled ? '' : 'none';
+                if (enabled) {
+                    this.el.querySelector(`#padJoywing${i}Bus`).value = slot[0];
+                    this.el.querySelector(`#padJoywing${i}Sda`).value = slot[1];
+                    this.el.querySelector(`#padJoywing${i}Scl`).value = slot[2];
+                }
             }
 
             // Conflict detection
@@ -363,12 +372,16 @@ export class PadConfigCard {
             led_count: parseInt(this.el.querySelector('#padLedCount').value),
             speaker_pin: parseInt(this.el.querySelector('#padSpeakerPin').value),
             speaker_enable_pin: parseInt(this.el.querySelector('#padSpeakerEnablePin').value),
-            joywing_bus: this.el.querySelector('#padJoywingEnabled').checked
-                ? parseInt(this.el.querySelector('#padJoywingBus').value) : -1,
-            joywing_sda: this.el.querySelector('#padJoywingEnabled').checked
-                ? parseInt(this.el.querySelector('#padJoywingSda').value) : -1,
-            joywing_scl: this.el.querySelector('#padJoywingEnabled').checked
-                ? parseInt(this.el.querySelector('#padJoywingScl').value) : -1,
+            ...(() => {
+                const jw = {};
+                for (let i = 0; i < 2; i++) {
+                    const enabled = this.el.querySelector(`#padJoywing${i}Enabled`).checked;
+                    jw[`joywing${i}_bus`] = enabled ? parseInt(this.el.querySelector(`#padJoywing${i}Bus`).value) : -1;
+                    jw[`joywing${i}_sda`] = enabled ? parseInt(this.el.querySelector(`#padJoywing${i}Sda`).value) : -1;
+                    jw[`joywing${i}_scl`] = enabled ? parseInt(this.el.querySelector(`#padJoywing${i}Scl`).value) : -1;
+                }
+                return jw;
+            })(),
         };
 
         try {
