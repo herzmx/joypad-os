@@ -30,7 +30,6 @@ void pad_config_to_flash(const pad_device_config_t* config, pad_config_flash_t* 
 
     flash->flags = 0;
     if (config->active_high)        flash->flags |= PAD_FLAG_ACTIVE_HIGH;
-    if (config->dpad_toggle_invert) flash->flags |= PAD_FLAG_DPAD_TOGGLE_INVERT;
     if (config->invert_lx)          flash->flags |= PAD_FLAG_INVERT_LX;
     if (config->invert_ly)          flash->flags |= PAD_FLAG_INVERT_LY;
     if (config->invert_rx)          flash->flags |= PAD_FLAG_INVERT_RX;
@@ -63,12 +62,18 @@ void pad_config_to_flash(const pad_device_config_t* config, pad_config_flash_t* 
     flash->buttons[PAD_BTN_L4]  = config->l4;
     flash->buttons[PAD_BTN_R4]  = config->r4;
 
-    flash->dpad_toggle = config->dpad_toggle;
+    for (int i = 0; i < 2; i++) {
+        flash->toggle[i].pin = config->toggle[i].pin;
+        flash->toggle[i].function = config->toggle[i].function;
+        flash->toggle[i].flags = config->toggle[i].invert ? PAD_TOGGLE_FLAG_INVERT : 0;
+    }
 
     flash->adc_channels[0] = config->adc_lx;
     flash->adc_channels[1] = config->adc_ly;
     flash->adc_channels[2] = config->adc_rx;
     flash->adc_channels[3] = config->adc_ry;
+    flash->adc_channels[4] = config->adc_lt;
+    flash->adc_channels[5] = config->adc_rt;
 
     flash->led_pin = config->led_pin;
     flash->led_count = config->led_count;
@@ -106,7 +111,6 @@ const pad_device_config_t* pad_config_from_flash(const pad_config_flash_t* flash
     runtime_config.name = runtime_name;
 
     runtime_config.active_high        = (flash->flags & PAD_FLAG_ACTIVE_HIGH) != 0;
-    runtime_config.dpad_toggle_invert = (flash->flags & PAD_FLAG_DPAD_TOGGLE_INVERT) != 0;
     runtime_config.invert_lx          = (flash->flags & PAD_FLAG_INVERT_LX) != 0;
     runtime_config.invert_ly          = (flash->flags & PAD_FLAG_INVERT_LY) != 0;
     runtime_config.invert_rx          = (flash->flags & PAD_FLAG_INVERT_RX) != 0;
@@ -139,12 +143,18 @@ const pad_device_config_t* pad_config_from_flash(const pad_config_flash_t* flash
     runtime_config.l4  = flash->buttons[PAD_BTN_L4];
     runtime_config.r4  = flash->buttons[PAD_BTN_R4];
 
-    runtime_config.dpad_toggle = flash->dpad_toggle;
+    for (int i = 0; i < 2; i++) {
+        runtime_config.toggle[i].pin = flash->toggle[i].pin;
+        runtime_config.toggle[i].function = flash->toggle[i].function;
+        runtime_config.toggle[i].invert = (flash->toggle[i].flags & PAD_TOGGLE_FLAG_INVERT) != 0;
+    }
 
     runtime_config.adc_lx = flash->adc_channels[0];
     runtime_config.adc_ly = flash->adc_channels[1];
     runtime_config.adc_rx = flash->adc_channels[2];
     runtime_config.adc_ry = flash->adc_channels[3];
+    runtime_config.adc_lt = flash->adc_channels[4];
+    runtime_config.adc_rt = flash->adc_channels[5];
 
     runtime_config.led_pin = flash->led_pin;
     runtime_config.led_count = flash->led_count;

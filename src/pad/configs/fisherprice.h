@@ -60,8 +60,10 @@ static const pad_device_config_t pad_config_fisherprice_v1 = {
     .l4 = PAD_PIN_DISABLED,
     .r4 = PAD_PIN_DISABLED,
 
-    .dpad_toggle = 6,
-    .dpad_toggle_invert = true,   // HIGH = D-pad, LOW = left stick
+    .toggle = {
+        { .pin = 6, .function = PAD_TOGGLE_FUNC_DPAD_LSTICK, .invert = true },
+        { .pin = PAD_PIN_DISABLED, .function = 0, .invert = false },
+    },
 
     // No analog sticks
     .adc_lx = PAD_PIN_DISABLED,
@@ -141,8 +143,10 @@ static const pad_device_config_t pad_config_fisherprice_v2 = {
     .l4 = PAD_PIN_DISABLED,
     .r4 = PAD_PIN_DISABLED,
 
-    .dpad_toggle = 6,
-    .dpad_toggle_invert = false,  // HIGH = right stick, LOW = D-pad
+    .toggle = {
+        { .pin = 6, .function = PAD_TOGGLE_FUNC_DPAD_RSTICK, .invert = false },
+        { .pin = PAD_PIN_DISABLED, .function = 0, .invert = false },
+    },
 
     // Left analog stick on ADC (GPIO 26-27)
     .adc_lx = 0,    // ADC channel 0 (GPIO 26)

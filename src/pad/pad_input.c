@@ -6,6 +6,7 @@
 // Each registered config creates a controller input source.
 
 #include "pad_input.h"
+#include "pad_config_flash.h"
 #include "core/buttons.h"
 #include "core/input_event.h"
 #include "core/router/router.h"
@@ -258,22 +259,27 @@ static void pad_init_device_pins(const pad_device_config_t* config) {
     pad_init_button_pin(config->l4, ah);
     pad_init_button_pin(config->r4, ah);
 
-    // Initialize toggle switch pin
-    if (config->dpad_toggle >= 0 && config->dpad_toggle <= 29) {
-        gpio_init(config->dpad_toggle);
-        gpio_set_dir(config->dpad_toggle, GPIO_IN);
-        if (config->dpad_toggle_invert) {
-            gpio_pull_up(config->dpad_toggle);    // Inverted: switch connects to GND
-        } else {
-            gpio_pull_down(config->dpad_toggle);  // Normal: switch connects to VCC
+    // Initialize toggle switch pins
+    for (int t = 0; t < 2; t++) {
+        int16_t pin = config->toggle[t].pin;
+        if (pin >= 0 && pin <= 29) {
+            gpio_init(pin);
+            gpio_set_dir(pin, GPIO_IN);
+            if (config->toggle[t].invert) {
+                gpio_pull_up(pin);
+            } else {
+                gpio_pull_down(pin);
+            }
+            printf("[pad] Toggle %d on GPIO %d (func=%d%s)\n",
+                   t, pin, config->toggle[t].function,
+                   config->toggle[t].invert ? ", inverted" : "");
         }
-        printf("[pad] D-pad toggle switch on GPIO %d%s\n", config->dpad_toggle,
-               config->dpad_toggle_invert ? " (inverted)" : "");
     }
 
     // Initialize ADC if any analog inputs are used
     bool has_analog = (config->adc_lx >= 0 || config->adc_ly >= 0 ||
-                       config->adc_rx >= 0 || config->adc_ry >= 0);
+                       config->adc_rx >= 0 || config->adc_ry >= 0 ||
+                       config->adc_lt >= 0 || config->adc_rt >= 0);
 
     if (has_analog && !adc_initialized) {
         adc_init();
@@ -292,6 +298,12 @@ static void pad_init_device_pins(const pad_device_config_t* config) {
     }
     if (config->adc_ry >= 0 && config->adc_ry <= 3) {
         adc_gpio_init(26 + config->adc_ry);
+    }
+    if (config->adc_lt >= 0 && config->adc_lt <= 3) {
+        adc_gpio_init(26 + config->adc_lt);
+    }
+    if (config->adc_rt >= 0 && config->adc_rt <= 3) {
+        adc_gpio_init(26 + config->adc_rt);
     }
 
     printf("[pad] Initialized device: %s (active_%s%s)\n",
@@ -397,19 +409,27 @@ static void pad_poll_device(uint8_t device_index) {
 
     // =================================================================
     // Apply d-pad mode (remap d-pad to analog stick if needed)
-    // Physical toggle switch overrides software mode to right stick
+    // Physical toggle switches can override the software d-pad mode
     // =================================================================
     dpad_mode_t effective_mode = dpad_mode;
 
-    // Physical toggle switch: when HIGH, remap d-pad to analog stick
-    // If config has a left analog stick → right stick (V2: left stick is physical)
-    // If config has no analog sticks   → left stick  (V1: d-pad doubles as stick)
-    if (config->dpad_toggle >= 0 && config->dpad_toggle <= 29) {
-        bool toggle_state = gpio_get(config->dpad_toggle);
-        if (config->dpad_toggle_invert) toggle_state = !toggle_state;
-        if (toggle_state) {
-            bool has_left_stick = (config->adc_lx >= 0 || config->adc_ly >= 0);
-            effective_mode = has_left_stick ? DPAD_MODE_RIGHT_STICK : DPAD_MODE_LEFT_STICK;
+    // Check toggle switches for d-pad remap functions
+    for (int t = 0; t < 2; t++) {
+        int16_t pin = config->toggle[t].pin;
+        if (pin < 0 || pin > 29) continue;
+        if (config->toggle[t].function == 0) continue;  // No function assigned
+
+        bool toggle_state = gpio_get(pin);
+        if (config->toggle[t].invert) toggle_state = !toggle_state;
+        if (!toggle_state) continue;  // Toggle not active
+
+        switch (config->toggle[t].function) {
+            case PAD_TOGGLE_FUNC_DPAD_LSTICK:
+                effective_mode = DPAD_MODE_LEFT_STICK;
+                break;
+            case PAD_TOGGLE_FUNC_DPAD_RSTICK:
+                effective_mode = DPAD_MODE_RIGHT_STICK;
+                break;
         }
     }
 
@@ -461,6 +481,14 @@ static void pad_poll_device(uint8_t device_index) {
     if (config->adc_ry >= 0) {
         event->analog[ANALOG_RY] = apply_deadzone(
             pad_read_adc(config->adc_ry, config->invert_ry), dz);
+    }
+
+    // Read analog triggers (no deadzone — 0=released, 255=full)
+    if (config->adc_lt >= 0) {
+        event->analog[ANALOG_L2] = pad_read_adc(config->adc_lt, false);
+    }
+    if (config->adc_rt >= 0) {
+        event->analog[ANALOG_R2] = pad_read_adc(config->adc_rt, false);
     }
 }
 

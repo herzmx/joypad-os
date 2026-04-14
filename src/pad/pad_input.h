@@ -84,9 +84,12 @@ typedef struct {
     int16_t l4;                 // Extra left trigger/paddle
     int16_t r4;                 // Extra right trigger/paddle
 
-    // Toggle switch for D-pad mode (PAD_PIN_DISABLED = not used)
-    int16_t dpad_toggle;
-    bool dpad_toggle_invert;    // false: HIGH=analog, LOW=dpad; true: HIGH=dpad, LOW=analog
+    // Toggle switches (up to 2, each with configurable function)
+    struct {
+        int16_t pin;            // GPIO pin (-1 = disabled)
+        uint8_t function;       // PAD_TOGGLE_FUNC_*
+        bool invert;            // true: active low
+    } toggle[2];
 
     // Analog stick ADC channels (0-3 for GPIO 26-29, PAD_PIN_DISABLED = not used)
     // Note: RP2040 has 4 ADC channels on GPIO 26, 27, 28, 29
@@ -94,6 +97,8 @@ typedef struct {
     int8_t adc_ly;              // Left stick Y (ADC channel 0-3)
     int8_t adc_rx;              // Right stick X (ADC channel 0-3)
     int8_t adc_ry;              // Right stick Y (ADC channel 0-3)
+    int8_t adc_lt;              // Left trigger analog (ADC channel 0-3)
+    int8_t adc_rt;              // Right trigger analog (ADC channel 0-3)
 
     bool invert_lx;             // Invert left X axis
     bool invert_ly;             // Invert left Y axis
@@ -204,11 +209,16 @@ extern const InputInterface pad_input_interface;
     .a4 = PAD_PIN_DISABLED, \
     .l4 = PAD_PIN_DISABLED, \
     .r4 = PAD_PIN_DISABLED, \
-    .dpad_toggle = PAD_PIN_DISABLED, \
+    .toggle = { \
+        { .pin = PAD_PIN_DISABLED, .function = 0, .invert = false }, \
+        { .pin = PAD_PIN_DISABLED, .function = 0, .invert = false }, \
+    }, \
     .adc_lx = PAD_PIN_DISABLED, \
     .adc_ly = PAD_PIN_DISABLED, \
     .adc_rx = PAD_PIN_DISABLED, \
     .adc_ry = PAD_PIN_DISABLED, \
+    .adc_lt = PAD_PIN_DISABLED, \
+    .adc_rt = PAD_PIN_DISABLED, \
     .invert_lx = false, \
     .invert_ly = false, \
     .invert_rx = false, \

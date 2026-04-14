@@ -79,7 +79,10 @@ static const pad_device_config_t pad_config_macropad = {
     .r4 = PAD_PIN_DISABLED,
 
     // No toggle switch (dpad always digital)
-    .dpad_toggle = PAD_PIN_DISABLED,
+    .toggle = { 
+        { .pin = PAD_PIN_DISABLED, .function = 0, .invert = false }, 
+        { .pin = PAD_PIN_DISABLED, .function = 0, .invert = false }, 
+    },
 
     // No analog sticks
     .adc_lx = PAD_PIN_DISABLED,

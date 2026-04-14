@@ -67,7 +67,10 @@ static const pad_device_config_t pad_config_alpakka = {
     .r4 = 207,              // Right paddle (expander 1, PIN_R4)
 
     // No toggle switch (dpad always digital)
-    .dpad_toggle = PAD_PIN_DISABLED,
+    .toggle = { 
+        { .pin = PAD_PIN_DISABLED, .function = 0, .invert = false }, 
+        { .pin = PAD_PIN_DISABLED, .function = 0, .invert = false }, 
+    },
 
     // Left analog stick on ADC
     // Alpakka has single thumbstick on left side

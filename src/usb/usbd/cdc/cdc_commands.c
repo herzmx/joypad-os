@@ -1454,9 +1454,8 @@ static void cmd_pad_config_get(const char* json)
 
     // Flags
     pos += snprintf(response_buf + pos, sizeof(response_buf) - pos,
-                    ",\"active_high\":%s,\"dpad_toggle_invert\":%s",
-                    (flash_data.flags & PAD_FLAG_ACTIVE_HIGH) ? "true" : "false",
-                    (flash_data.flags & PAD_FLAG_DPAD_TOGGLE_INVERT) ? "true" : "false");
+                    ",\"active_high\":%s",
+                    (flash_data.flags & PAD_FLAG_ACTIVE_HIGH) ? "true" : "false");
 
     // I2C
     pos += snprintf(response_buf + pos, sizeof(response_buf) - pos,
@@ -1477,13 +1476,16 @@ static void cmd_pad_config_get(const char* json)
 
     // D-pad toggle
     pos += snprintf(response_buf + pos, sizeof(response_buf) - pos,
-                    ",\"dpad_toggle\":%d", flash_data.dpad_toggle);
+                    ",\"toggles\":[[%d,%d,%d],[%d,%d,%d]]",
+                    flash_data.toggle[0].pin, flash_data.toggle[0].function, flash_data.toggle[0].flags,
+                    flash_data.toggle[1].pin, flash_data.toggle[1].function, flash_data.toggle[1].flags);
 
     // ADC
     pos += snprintf(response_buf + pos, sizeof(response_buf) - pos,
-                    ",\"adc\":[%d,%d,%d,%d]",
+                    ",\"adc\":[%d,%d,%d,%d,%d,%d]",
                     flash_data.adc_channels[0], flash_data.adc_channels[1],
-                    flash_data.adc_channels[2], flash_data.adc_channels[3]);
+                    flash_data.adc_channels[2], flash_data.adc_channels[3],
+                    flash_data.adc_channels[4], flash_data.adc_channels[5]);
 
     // ADC invert flags
     pos += snprintf(response_buf + pos, sizeof(response_buf) - pos,
@@ -1537,7 +1539,6 @@ static void cmd_pad_config_set(const char* json)
     // Flags
     bool bval;
     if (json_get_bool(json, "active_high", &bval)) config.active_high = bval;
-    if (json_get_bool(json, "dpad_toggle_invert", &bval)) config.dpad_toggle_invert = bval;
     if (json_get_bool(json, "invert_lx", &bval)) config.invert_lx = bval;
     if (json_get_bool(json, "invert_ly", &bval)) config.invert_ly = bval;
     if (json_get_bool(json, "invert_rx", &bval)) config.invert_rx = bval;
@@ -1583,21 +1584,37 @@ static void cmd_pad_config_set(const char* json)
         config.r4  = buttons[PAD_BTN_R4];
     }
 
-    // D-pad toggle
-    config.dpad_toggle = PAD_PIN_DISABLED;
-    if (json_get_int(json, "dpad_toggle", &ival)) config.dpad_toggle = (int16_t)ival;
+    // Toggle switches (array of [pin, function, flags])
+    for (int i = 0; i < 2; i++) {
+        config.toggle[i].pin = PAD_PIN_DISABLED;
+        config.toggle[i].function = 0;
+        config.toggle[i].invert = false;
+    }
+    {
+        char key[20];
+        for (int i = 0; i < 2; i++) {
+            snprintf(key, sizeof(key), "toggle%d_pin", i);
+            if (json_get_int(json, key, &ival)) config.toggle[i].pin = (int16_t)ival;
+            snprintf(key, sizeof(key), "toggle%d_func", i);
+            if (json_get_int(json, key, &ival)) config.toggle[i].function = (uint8_t)ival;
+            snprintf(key, sizeof(key), "toggle%d_inv", i);
+            if (json_get_int(json, key, &ival)) config.toggle[i].invert = ival != 0;
+        }
+    }
 
     // ADC channels
-    int8_t adc[4] = {PAD_PIN_DISABLED, PAD_PIN_DISABLED, PAD_PIN_DISABLED, PAD_PIN_DISABLED};
-    int16_t adc_temp[4];
-    int adc_count = json_get_int16_array(json, "adc", adc_temp, 4);
+    int8_t adc[6] = {PAD_PIN_DISABLED, PAD_PIN_DISABLED, PAD_PIN_DISABLED, PAD_PIN_DISABLED, PAD_PIN_DISABLED, PAD_PIN_DISABLED};
+    int16_t adc_temp[6];
+    int adc_count = json_get_int16_array(json, "adc", adc_temp, 6);
     if (adc_count > 0) {
-        for (int i = 0; i < adc_count && i < 4; i++) adc[i] = (int8_t)adc_temp[i];
+        for (int i = 0; i < adc_count && i < 6; i++) adc[i] = (int8_t)adc_temp[i];
     }
     config.adc_lx = adc[0];
     config.adc_ly = adc[1];
     config.adc_rx = adc[2];
     config.adc_ry = adc[3];
+    config.adc_lt = adc[4];
+    config.adc_rt = adc[5];
 
     // LED
     config.led_pin = PAD_PIN_DISABLED;

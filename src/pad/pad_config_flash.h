@@ -32,7 +32,7 @@ typedef struct {
 
     // Flags (1 byte)
     // Bit 0: active_high
-    // Bit 1: dpad_toggle_invert
+    // Bit 1: (reserved, was dpad_toggle_invert)
     // Bit 2: invert_lx
     // Bit 3: invert_ly
     // Bit 4: invert_rx
@@ -50,11 +50,16 @@ typedef struct {
     // Order: dpad UDLR, b1-b4, l1/r1/l2/r2, s1/s2, l3/r3, a1/a2, l4/r4
     int16_t buttons[22];
 
-    // D-pad toggle pin (2 bytes)
-    int16_t dpad_toggle;
+    // Toggle switches (8 bytes — 2 slots × 4 bytes each)
+    #define PAD_TOGGLE_MAX 2
+    struct {
+        int16_t pin;            // GPIO pin (-1 = disabled)
+        uint8_t function;       // PAD_TOGGLE_FUNC_*
+        uint8_t flags;          // bit 0: invert
+    } toggle[2];
 
-    // ADC channels (4 bytes)
-    int8_t adc_channels[4];     // lx, ly, rx, ry
+    // ADC channels (6 bytes)
+    int8_t adc_channels[6];     // lx, ly, rx, ry, lt, rt
 
     // LED config (2 bytes)
     int8_t led_pin;
@@ -92,8 +97,8 @@ typedef struct {
     } joywing[2];
 
     // Reserved for future use (pad to 256 bytes)
-    // 256 - 8 - 32 - 1 - 2 - 1 - 44 - 2 - 4 - 2 - 2 - 6 - 3 - 1 - 8 = 140
-    uint8_t reserved[140];
+    // 256 - 8 - 32 - 1 - 2 - 1 - 44 - 8 - 6 - 2 - 2 - 6 - 3 - 1 - 8 = 132
+    uint8_t reserved[132];
 } pad_config_flash_t;
 
 _Static_assert(sizeof(pad_config_flash_t) == 256, "pad_config_flash_t must be exactly 256 bytes");
@@ -131,9 +136,17 @@ _Static_assert(sizeof(pad_config_flash_t) == 256, "pad_config_flash_t must be ex
 // FLAGS
 // ============================================================================
 
+// Config flags
 #define PAD_FLAG_ACTIVE_HIGH        (1 << 0)
-#define PAD_FLAG_DPAD_TOGGLE_INVERT (1 << 1)
 #define PAD_FLAG_INVERT_LX          (1 << 2)
+
+// Toggle switch functions
+#define PAD_TOGGLE_FUNC_NONE        0   // Disabled
+#define PAD_TOGGLE_FUNC_DPAD_LSTICK 1   // D-pad → Left stick
+#define PAD_TOGGLE_FUNC_DPAD_RSTICK 2   // D-pad → Right stick
+
+// Toggle flags
+#define PAD_TOGGLE_FLAG_INVERT      (1 << 0)
 #define PAD_FLAG_INVERT_LY          (1 << 3)
 #define PAD_FLAG_INVERT_RX          (1 << 4)
 #define PAD_FLAG_INVERT_RY          (1 << 5)

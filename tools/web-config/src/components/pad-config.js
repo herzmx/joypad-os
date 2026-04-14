@@ -33,11 +33,12 @@ export class PadConfigCard {
     render() {
         this.el.innerHTML = `
             <div class="card" id="padConfigCard" style="display:none;">
-                <h2>Custom Gamepad</h2>
+                <h2>Custom</h2>
                 <div class="sub-tabs">
                     <button class="sub-tab active" data-tab="buttons">Buttons</button>
                     <button class="sub-tab" data-tab="analog">Analog</button>
-                    <button class="sub-tab" data-tab="hardware">Hardware</button>
+                    <button class="sub-tab" data-tab="toggles">Toggles</button>
+                    <button class="sub-tab" data-tab="hardware">Misc</button>
                 </div>
 
                 <!-- Buttons Tab -->
@@ -53,15 +54,41 @@ export class PadConfigCard {
                     <h3 style="margin-top: 12px; margin-bottom: 8px;">Pin Assignments</h3>
                     <div id="padButtonPins" class="pad-pin-grid two-col"></div>
 
-                    <h3 style="margin-top: 12px; margin-bottom: 8px;">D-pad Toggle</h3>
-                    <div class="pad-form-row">
-                        <span class="label">Toggle Pin</span>
-                        <input type="number" id="padDpadToggle" min="-1" max="29" value="-1">
-                    </div>
-                    <div class="checkbox-row">
-                        <input type="checkbox" id="padDpadToggleInvert">
-                        <label for="padDpadToggleInvert">Invert (HIGH = D-pad mode)</label>
-                    </div>
+                </div>
+
+                <!-- Toggles Tab -->
+                <div class="sub-tab-content" id="tabToggles" data-tab="toggles">
+                    ${[0,1].map(i => `
+                    <div style="margin-bottom: 10px;">
+                        <div class="toggle-row" style="margin-bottom: 8px;">
+                            <label class="toggle">
+                                <input type="checkbox" id="padToggle${i}Enabled">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Toggle ${i + 1}</span>
+                        </div>
+                        <div id="padToggle${i}Pins" style="display:none;">
+                            <div class="pad-form-row">
+                                <span class="label">Pin</span>
+                                <input type="number" id="padToggle${i}Pin" min="0" max="48" value="0">
+                            </div>
+                            <div class="pad-form-row">
+                                <span class="label">Active Level</span>
+                                <select id="padToggle${i}Inv">
+                                    <option value="0">Active High (VCC = active)</option>
+                                    <option value="1">Active Low (GND = active)</option>
+                                </select>
+                            </div>
+                            <div class="pad-form-row">
+                                <span class="label">Function</span>
+                                <select id="padToggle${i}Func">
+                                    <option value="1">D-pad to Left Stick</option>
+                                    <option value="2">D-pad to Right Stick</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>`).join('')}
+                    <p class="hint">Toggle switches act like held buttons, mapped to config changes instead of button presses.</p>
                 </div>
 
                 <!-- Analog Tab -->
@@ -72,6 +99,8 @@ export class PadConfigCard {
                         ${adcRow('Left Y', 'padAdcLY')}
                         ${adcRow('Right X', 'padAdcRX')}
                         ${adcRow('Right Y', 'padAdcRY')}
+                        ${adcRow('Left Trigger', 'padAdcLT')}
+                        ${adcRow('Right Trigger', 'padAdcRT')}
                     </div>
                     <div class="pad-form-row" style="margin-top: 12px;">
                         <span class="label">Deadzone</span>
@@ -173,6 +202,10 @@ export class PadConfigCard {
         });
 
         for (let i = 0; i < 2; i++) {
+            this.el.querySelector(`#padToggle${i}Enabled`).addEventListener('change', () => {
+                this.el.querySelector(`#padToggle${i}Pins`).style.display =
+                    this.el.querySelector(`#padToggle${i}Enabled`).checked ? '' : 'none';
+            });
             this.el.querySelector(`#padJoywing${i}Enabled`).addEventListener('change', () => {
                 this.el.querySelector(`#padJoywing${i}Pins`).style.display =
                     this.el.querySelector(`#padJoywing${i}Enabled`).checked ? '' : 'none';
@@ -248,16 +281,28 @@ export class PadConfigCard {
                 `<div class="pad-pin-row"><span>${name}</span>${this.buildPinSelect('padBtn' + i, buttons[i] !== undefined ? buttons[i] : -1, includeI2C)}</div>`
             ).join('');
 
-            // D-pad toggle
-            this.el.querySelector('#padDpadToggle').value = config.dpad_toggle !== undefined ? config.dpad_toggle : -1;
-            this.el.querySelector('#padDpadToggleInvert').checked = config.dpad_toggle_invert || false;
+            // Toggle switches: array of [pin, function, flags]
+            const toggles = config.toggles || [];
+            for (let i = 0; i < 2; i++) {
+                const t = toggles[i] || [-1, 0, 0];
+                const enabled = t[0] >= 0 && t[1] > 0;
+                this.el.querySelector(`#padToggle${i}Enabled`).checked = enabled;
+                this.el.querySelector(`#padToggle${i}Pins`).style.display = enabled ? '' : 'none';
+                if (enabled) {
+                    this.el.querySelector(`#padToggle${i}Pin`).value = t[0];
+                    this.el.querySelector(`#padToggle${i}Func`).value = t[1];
+                    this.el.querySelector(`#padToggle${i}Inv`).value = (t[2] & 1) ? '1' : '0';
+                }
+            }
 
             // ADC
-            const adc = config.adc || [-1, -1, -1, -1];
+            const adc = config.adc || [-1, -1, -1, -1, -1, -1];
             this.el.querySelector('#padAdcLX').value = adc[0];
             this.el.querySelector('#padAdcLY').value = adc[1];
             this.el.querySelector('#padAdcRX').value = adc[2];
             this.el.querySelector('#padAdcRY').value = adc[3];
+            this.el.querySelector('#padAdcLT').value = adc[4] !== undefined ? adc[4] : -1;
+            this.el.querySelector('#padAdcRT').value = adc[5] !== undefined ? adc[5] : -1;
             this.el.querySelector('#padAdcLXInvert').checked = config.invert_lx || false;
             this.el.querySelector('#padAdcLYInvert').checked = config.invert_ly || false;
             this.el.querySelector('#padAdcRXInvert').checked = config.invert_rx || false;
@@ -363,7 +408,6 @@ export class PadConfigCard {
         const config = {
             name: 'Custom',
             active_high: this.el.querySelector('#padActiveHigh').value === 'true',
-            dpad_toggle_invert: this.el.querySelector('#padDpadToggleInvert').checked,
             invert_lx: this.el.querySelector('#padAdcLXInvert').checked,
             invert_ly: this.el.querySelector('#padAdcLYInvert').checked,
             invert_rx: this.el.querySelector('#padAdcRXInvert').checked,
@@ -372,12 +416,23 @@ export class PadConfigCard {
             i2c_scl: parseInt(this.el.querySelector('#padI2cScl').value),
             deadzone: parseInt(this.el.querySelector('#padDeadzone').value),
             buttons,
-            dpad_toggle: parseInt(this.el.querySelector('#padDpadToggle').value),
+            ...(() => {
+                const tg = {};
+                for (let i = 0; i < 2; i++) {
+                    const enabled = this.el.querySelector(`#padToggle${i}Enabled`).checked;
+                    tg[`toggle${i}_pin`] = enabled ? parseInt(this.el.querySelector(`#padToggle${i}Pin`).value) : -1;
+                    tg[`toggle${i}_func`] = enabled ? parseInt(this.el.querySelector(`#padToggle${i}Func`).value) : 0;
+                    tg[`toggle${i}_inv`] = enabled ? parseInt(this.el.querySelector(`#padToggle${i}Inv`).value) : 0;
+                }
+                return tg;
+            })(),
             adc: [
                 parseInt(this.el.querySelector('#padAdcLX').value),
                 parseInt(this.el.querySelector('#padAdcLY').value),
                 parseInt(this.el.querySelector('#padAdcRX').value),
                 parseInt(this.el.querySelector('#padAdcRY').value),
+                parseInt(this.el.querySelector('#padAdcLT').value),
+                parseInt(this.el.querySelector('#padAdcRT').value),
             ],
             led_pin: parseInt(this.el.querySelector('#padLedPin').value),
             led_count: parseInt(this.el.querySelector('#padLedCount').value),
