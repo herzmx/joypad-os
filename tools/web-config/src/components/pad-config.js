@@ -5,7 +5,8 @@ const PAD_BUTTON_NAMES = [
     'B1', 'B2', 'B3', 'B4',
     'L1', 'R1', 'L2', 'R2',
     'S1', 'S2', 'L3', 'R3',
-    'A1', 'A2', 'A3', 'A4', 'L4', 'R4'
+    'A1', 'A2', 'A3', 'A4', 'L4', 'R4',
+    'F1', 'F2'
 ];
 
 const ADC_OPTIONS = `
@@ -273,9 +274,12 @@ export class PadConfigCard {
                 this.el.querySelector('#padI2cScl').value = i2cScl;
             }
 
-            // Button pins
+            // Button pins (22 from buttons array + F1/F2 from separate fields)
             const container = this.el.querySelector('#padButtonPins');
-            const buttons = config.buttons || [];
+            const buttons = [...(config.buttons || [])];
+            // Append F1/F2 from separate flash fields
+            buttons[22] = config.f1_pin !== undefined ? config.f1_pin : -1;
+            buttons[23] = config.f2_pin !== undefined ? config.f2_pin : -1;
             const includeI2C = this.hasI2C();
             container.innerHTML = PAD_BUTTON_NAMES.map((name, i) =>
                 `<div class="pad-pin-row"><span>${name}</span>${this.buildPinSelect('padBtn' + i, buttons[i] !== undefined ? buttons[i] : -1, includeI2C)}</div>`
@@ -397,6 +401,9 @@ export class PadConfigCard {
             const sel = this.el.querySelector('#padBtn' + i);
             buttons.push(sel ? parseInt(sel.value) : -1);
         }
+        // F1/F2 stored as separate fields, not in buttons array
+        const f1Sel = this.el.querySelector('#padBtn22');
+        const f2Sel = this.el.querySelector('#padBtn23');
 
         const config = {
             name: 'Custom',
@@ -409,6 +416,8 @@ export class PadConfigCard {
             i2c_scl: this.el.querySelector('#padI2cEnable').checked ? parseInt(this.el.querySelector('#padI2cScl').value) : -1,
             deadzone: parseInt(this.el.querySelector('#padDeadzone').value),
             buttons,
+            f1_pin: f1Sel ? parseInt(f1Sel.value) : -1,
+            f2_pin: f2Sel ? parseInt(f2Sel.value) : -1,
             ...(() => {
                 const tg = {};
                 for (let i = 0; i < 2; i++) {

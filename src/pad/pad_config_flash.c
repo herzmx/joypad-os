@@ -62,8 +62,8 @@ void pad_config_to_flash(const pad_device_config_t* config, pad_config_flash_t* 
     flash->buttons[PAD_BTN_A4]  = config->a4;
     flash->buttons[PAD_BTN_L4]  = config->l4;
     flash->buttons[PAD_BTN_R4]  = config->r4;
-    flash->buttons[PAD_BTN_F1]  = config->f1;
-    flash->buttons[PAD_BTN_F2]  = config->f2;
+    flash->f1_pin = config->f1;
+    flash->f2_pin = config->f2;
 
     for (int i = 0; i < 2; i++) {
         flash->toggle[i].pin = config->toggle[i].pin;
@@ -153,8 +153,8 @@ const pad_device_config_t* pad_config_from_flash(const pad_config_flash_t* flash
     runtime_config.a4  = flash->buttons[PAD_BTN_A4];
     runtime_config.l4  = flash->buttons[PAD_BTN_L4];
     runtime_config.r4  = flash->buttons[PAD_BTN_R4];
-    runtime_config.f1  = flash->buttons[PAD_BTN_F1];
-    runtime_config.f2  = flash->buttons[PAD_BTN_F2];
+    runtime_config.f1  = flash->f1_pin;
+    runtime_config.f2  = flash->f2_pin;
 
     for (int i = 0; i < 2; i++) {
         runtime_config.toggle[i].pin = flash->toggle[i].pin;

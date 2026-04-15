@@ -1570,6 +1570,11 @@ static void cmd_pad_config_get(const char* json)
                     flash_data.joywing[0].i2c_bus, flash_data.joywing[0].sda, flash_data.joywing[0].scl, flash_data.joywing[0].addr,
                     flash_data.joywing[1].i2c_bus, flash_data.joywing[1].sda, flash_data.joywing[1].scl, flash_data.joywing[1].addr);
 
+    // Function key pins
+    pos += snprintf(response_buf + pos, sizeof(response_buf) - pos,
+                    ",\"f1_pin\":%d,\"f2_pin\":%d",
+                    flash_data.f1_pin, flash_data.f2_pin);
+
     // Combo remaps
     pos += snprintf(response_buf + pos, sizeof(response_buf) - pos,
                     ",\"combos\":[[%lu,%lu],[%lu,%lu],[%lu,%lu],[%lu,%lu]]",
@@ -1733,6 +1738,12 @@ static void cmd_pad_config_set(const char* json)
             if (json_get_int(json, key, &ival)) config.joywing[i].addr = (uint8_t)ival;
         }
     }
+
+    // Function key pins
+    config.f1 = PAD_PIN_DISABLED;
+    config.f2 = PAD_PIN_DISABLED;
+    if (json_get_int(json, "f1_pin", &ival)) config.f1 = (int16_t)ival;
+    if (json_get_int(json, "f2_pin", &ival)) config.f2 = (int16_t)ival;
 
     // Combo remaps
     {

@@ -46,9 +46,9 @@ typedef struct {
     // Deadzone (1 byte)
     uint8_t deadzone;
 
-    // Digital button pins — 24 buttons (48 bytes)
-    // Order: dpad UDLR, b1-b4, l1/r1/l2/r2, s1/s2, l3/r3, a1-a4, l4/r4, f1/f2
-    int16_t buttons[24];
+    // Digital button pins — 22 buttons (44 bytes)
+    // Order: dpad UDLR, b1-b4, l1/r1/l2/r2, s1/s2, l3/r3, a1-a4, l4/r4
+    int16_t buttons[22];
 
     // Toggle switches (8 bytes — 2 slots × 4 bytes each)
     #define PAD_TOGGLE_MAX 2
@@ -115,6 +115,10 @@ typedef struct {
         uint32_t output_mask;   // upper byte = action, lower 22 bits = output buttons
     } combo[4];
 
+    // Function key pins (4 bytes) — internal only, for hotkey combos
+    int16_t f1_pin;
+    int16_t f2_pin;
+
     // D-pad mode (1 byte): 0=dpad, 1=left stick, 2=right stick
     uint8_t dpad_mode;
 
@@ -122,7 +126,7 @@ typedef struct {
     uint8_t reserved[95];
 } pad_config_flash_t;
 
-_Static_assert(sizeof(pad_config_flash_t) == 256, "pad_config_flash_t must be exactly 256 bytes");
+_Static_assert(sizeof(pad_config_flash_t) == 256, "pad_config_flash_t size mismatch");
 
 // ============================================================================
 // BUTTON INDEX MAPPING
@@ -151,9 +155,7 @@ _Static_assert(sizeof(pad_config_flash_t) == 256, "pad_config_flash_t must be ex
 #define PAD_BTN_A4          19
 #define PAD_BTN_L4          20
 #define PAD_BTN_R4          21
-#define PAD_BTN_F1          22
-#define PAD_BTN_F2          23
-#define PAD_BTN_COUNT       24
+#define PAD_BTN_COUNT       22
 
 // ============================================================================
 // FLAGS

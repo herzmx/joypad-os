@@ -1567,7 +1567,7 @@ target_compile_definitions(joypad_controller_btusb_rp2040_abb PRIVATE
     PAD_CONFIG_ABB=1
     SENSOR_JOYWING=1
     BOARD_LED_PIN=25
-    BOARD_NAME="abb"
+    BOARD_NAME="rp2040_abb"
     PICO_DEFAULT_PIO_USB_DP_PIN=23
     PIO_USB_DP_PIN_DEFAULT=23
     BOARD_TUH_RHPORT=1

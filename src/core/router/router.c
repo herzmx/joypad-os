@@ -6,6 +6,7 @@
 
 #include "router.h"
 #include "core/buttons.h"
+#include "core/services/storage/flash.h"
 #include "platform/platform.h"
 #include "core/services/players/manager.h"
 #include <string.h>
@@ -768,9 +769,23 @@ void router_submit_input(const input_event_t* event) {
     }
 #endif
 
-    // Apply button combo hotkeys
+    // Apply custom profile button remap (so Fn key remaps are visible to hotkeys)
     input_event_t remapped;
     bool did_remap = false;
+    {
+        const custom_profile_t* cp = flash_get_active_custom_profile();
+        if (cp) {
+            uint32_t mapped = custom_profile_apply_buttons(cp, event->buttons);
+            if (mapped != event->buttons) {
+                remapped = *event;
+                remapped.buttons = mapped;
+                did_remap = true;
+                event = &remapped;
+            }
+        }
+    }
+
+    // Apply button combo hotkeys
     for (int c = 0; c < ROUTER_COMBO_MAX; c++) {
         uint32_t in = router_combos[c].input_mask;
         if (!in) continue;

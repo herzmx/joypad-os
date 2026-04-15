@@ -1363,3 +1363,12 @@ serve-docs:
 	fi
 	@echo "Serving docs at http://127.0.0.1:8000"
 	@$(DOCS_VENV)/bin/mkdocs serve
+
+# Serve web config locally
+.PHONY: serve-web
+serve-web:
+	@echo "Serving web config at http://127.0.0.1:8080"
+	@cd tools/web-config/src && python3 -c "\
+	import http.server; \
+	http.server.SimpleHTTPRequestHandler.extensions_map.update({'.js': 'application/javascript', '.mjs': 'application/javascript'}); \
+	http.server.HTTPServer(('', 8080), http.server.SimpleHTTPRequestHandler).serve_forever()"

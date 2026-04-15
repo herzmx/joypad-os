@@ -34,8 +34,8 @@ export class ProfilesCard {
     render() {
         const remappable = BUTTON_NAMES.slice(0, REMAPPABLE_COUNT);
         const mapOptions = `<option value="0">Passthrough</option>` +
-            remappable.map((name, idx) =>
-                `<option value="${idx + 1}">${name} (${BUTTON_LABELS[name]})</option>`
+            BUTTON_NAMES.map((name, idx) =>
+                `<option value="${idx + 1}">${name} (${BUTTON_LABELS[name] || name})</option>`
             ).join('') +
             `<option value="255">Disabled</option>`;
 
@@ -55,6 +55,10 @@ export class ProfilesCard {
                         <button id="newProfileBtn" class="secondary">+ New Profile</button>
                     </div>
                     <div id="profileList" class="profile-list"></div>
+                    <p class="hint" style="margin-top: 12px;">
+                        <a href="https://docs.joypad.ai/core/buttons/" target="_blank" style="color: var(--text-muted);">Button reference</a>
+                         · <a href="https://docs.joypad.ai/core/profiles/" target="_blank" style="color: var(--text-muted);">Profile docs</a>
+                    </p>
                 </div>
             </div>
 

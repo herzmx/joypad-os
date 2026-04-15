@@ -424,12 +424,15 @@ uint32_t custom_profile_apply_buttons(const custom_profile_t* profile, uint32_t 
                 output |= (1u << i);
             } else if (mapping == BUTTON_MAP_DISABLED) {
                 // Button disabled, don't output anything
-            } else if (mapping >= 1 && mapping <= CUSTOM_PROFILE_BUTTON_COUNT) {
-                // Remap to different button (1-based index in mapping)
+            } else if (mapping >= 1 && mapping <= BUTTON_MAP_MAX_TARGET) {
+                // Remap to different button (1-based index)
                 output |= (1u << (mapping - 1));
             }
         }
     }
+
+    // Pass through buttons beyond the profile map (A3, A4, L4, R4, F1, F2)
+    output |= buttons & ~((1u << CUSTOM_PROFILE_BUTTON_COUNT) - 1);
 
     return output;
 }

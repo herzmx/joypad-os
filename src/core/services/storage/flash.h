@@ -24,8 +24,9 @@
 
 // Button mapping values:
 // 0x00 = passthrough (no remap, keep original button)
-// 0x01-0x12 = remap to JP_BUTTON_* (1-based: 1=B1, 2=B2, ... 18=A2)
+// 0x01-0x18 = remap to JP_BUTTON_* (1-based: 1=B1, ... 18=A2, ... 23=F1, 24=F2)
 // 0xFF = disabled (button press ignored)
+#define BUTTON_MAP_MAX_TARGET 24  // Max valid remap target (F2)
 #define BUTTON_MAP_PASSTHROUGH 0x00
 #define BUTTON_MAP_DISABLED    0xFF
 
