@@ -134,6 +134,10 @@ void router_init(const router_config_t* config);
 // NOTE: This is the ONLY function input drivers should call!
 void router_submit_input(const input_event_t* event);
 
+// Set global d-pad mode (applies to all inputs in router)
+// 0=d-pad, 1=left stick, 2=right stick
+void router_set_dpad_mode(uint8_t mode);
+
 // ============================================================================
 // OUTPUT RETRIEVAL (Core 1 - Poll or Event Driven)
 // ============================================================================

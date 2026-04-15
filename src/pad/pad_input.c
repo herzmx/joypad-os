@@ -599,17 +599,13 @@ static void pad_input_task(void) {
                     break;
                 case PAD_COMBO_ACTION_DPAD_DPAD:
                 case PAD_COMBO_ACTION_DPAD_LSTICK:
-                case PAD_COMBO_ACTION_DPAD_RSTICK: {
-                    dpad_mode_t new_mode = action - PAD_COMBO_ACTION_DPAD_DPAD;
-                    if (!combo_fired[c] && dpad_mode != new_mode) {
-                        dpad_mode = new_mode;
-                        static const char* mode_names[] = {"D-PAD", "LEFT STICK", "RIGHT STICK"};
-                        printf("[pad] D-pad mode: %s\n", mode_names[dpad_mode]);
+                case PAD_COMBO_ACTION_DPAD_RSTICK:
+                    if (!combo_fired[c]) {
+                        router_set_dpad_mode(action - PAD_COMBO_ACTION_DPAD_DPAD);
                         combo_fired[c] = true;
                     }
                     pad_events[i].buttons &= ~in;
                     break;
-                }
                 case PAD_COMBO_ACTION_PROFILE_NEXT:
                     if (!combo_fired[c]) {
                         extern void profile_cycle_next(uint8_t output);

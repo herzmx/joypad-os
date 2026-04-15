@@ -1035,15 +1035,25 @@ static void cmd_settings_get(const char* json)
 static void cmd_router_get(const char* json)
 {
     (void)json;
+    // Compile-time defaults from app.h
+#ifndef ROUTING_MODE
+#define ROUTING_MODE 0
+#endif
+#ifndef MERGE_MODE
+#define MERGE_MODE 0
+#endif
+
     flash_t flash_data;
-    if (flash_load(&flash_data)) {
-        snprintf(response_buf, sizeof(response_buf),
-                 "{\"ok\":true,\"routing_mode\":%d,\"merge_mode\":%d,\"dpad_mode\":%d}",
-                 flash_data.routing_mode, flash_data.merge_mode, flash_data.dpad_mode);
-    } else {
-        snprintf(response_buf, sizeof(response_buf),
-                 "{\"ok\":true,\"routing_mode\":0,\"merge_mode\":0,\"dpad_mode\":0}");
+    uint8_t rm = ROUTING_MODE, mm = MERGE_MODE, dm = 0;
+    if (flash_load(&flash_data) && flash_data.router_saved) {
+        if (flash_data.routing_mode <= 2) rm = flash_data.routing_mode;
+        if (flash_data.merge_mode <= 2) mm = flash_data.merge_mode;
+        if (flash_data.dpad_mode <= 2) dm = flash_data.dpad_mode;
     }
+    snprintf(response_buf, sizeof(response_buf),
+             "{\"ok\":true,\"routing_mode\":%d,\"merge_mode\":%d,\"dpad_mode\":%d,"
+             "\"default_routing_mode\":%d,\"default_merge_mode\":%d}",
+             rm, mm, dm, (int)ROUTING_MODE, (int)MERGE_MODE);
     send_json(response_buf);
 }
 
@@ -1058,8 +1068,9 @@ static void cmd_router_set(const char* json)
     if (json_get_int(json, "routing_mode", &ival)) flash_data.routing_mode = (uint8_t)ival;
     if (json_get_int(json, "merge_mode", &ival)) flash_data.merge_mode = (uint8_t)ival;
     if (json_get_int(json, "dpad_mode", &ival)) flash_data.dpad_mode = (uint8_t)ival;
+    flash_data.router_saved = 1;
 
-    flash_save(&flash_data);
+    flash_save_force(&flash_data);
 
     snprintf(response_buf, sizeof(response_buf), "{\"ok\":true,\"reboot\":true}");
     send_json(response_buf);

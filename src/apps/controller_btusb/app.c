@@ -310,15 +310,13 @@ void app_init(void)
         .transform_flags = TRANSFORM_FLAGS,
     };
 
-    // Override router settings from flash
+    // Override router settings from flash (only if user has explicitly saved)
     {
         flash_t flash_data;
-        if (flash_load(&flash_data)) {
+        if (flash_load(&flash_data) && flash_data.router_saved) {
             if (flash_data.routing_mode <= 2) router_cfg.mode = flash_data.routing_mode;
             if (flash_data.merge_mode <= 2) router_cfg.merge_mode = flash_data.merge_mode;
-#ifdef SENSOR_PAD
-            if (flash_data.dpad_mode <= 2) pad_input_set_dpad_mode(flash_data.dpad_mode);
-#endif
+            if (flash_data.dpad_mode <= 2) router_set_dpad_mode(flash_data.dpad_mode);
         }
     }
 

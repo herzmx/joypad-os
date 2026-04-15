@@ -5,6 +5,7 @@
 // Replaces console-specific post_input_event() with unified routing.
 
 #include "router.h"
+#include "core/buttons.h"
 #include "platform/platform.h"
 #include "core/services/players/manager.h"
 #include <string.h>
@@ -161,6 +162,9 @@ static output_state_t router_outputs[MAX_OUTPUTS][MAX_PLAYERS_PER_OUTPUT];
 
 // Router configuration (set at init)
 static router_config_t router_config;
+
+// Global d-pad mode (0=dpad, 1=left stick, 2=right stick)
+static uint8_t global_dpad_mode = 0;
 
 // Active output count (for broadcast mode)
 static output_target_t active_outputs[MAX_OUTPUTS];
@@ -757,6 +761,29 @@ void router_submit_input(const input_event_t* event) {
     }
 #endif
 
+    // Apply global d-pad mode remap (d-pad buttons → analog stick)
+    input_event_t remapped;
+    if (global_dpad_mode > 0) {
+        remapped = *event;
+        uint32_t dpad_bits = remapped.buttons & (JP_BUTTON_DU | JP_BUTTON_DD | JP_BUTTON_DL | JP_BUTTON_DR);
+        if (dpad_bits) {
+            remapped.buttons &= ~(JP_BUTTON_DU | JP_BUTTON_DD | JP_BUTTON_DL | JP_BUTTON_DR);
+            uint8_t ax = 128, ay = 128;
+            if (dpad_bits & JP_BUTTON_DL) ax = 0;
+            else if (dpad_bits & JP_BUTTON_DR) ax = 255;
+            if (dpad_bits & JP_BUTTON_DU) ay = 0;
+            else if (dpad_bits & JP_BUTTON_DD) ay = 255;
+            if (global_dpad_mode == 1) {
+                remapped.analog[0] = ax;  // LX
+                remapped.analog[1] = ay;  // LY
+            } else {
+                remapped.analog[2] = ax;  // RX
+                remapped.analog[3] = ay;  // RY
+            }
+        }
+        event = &remapped;
+    }
+
     // Find first active route to determine output target
     output_target_t output = OUTPUT_TARGET_USB_DEVICE;
     for (uint8_t i = 0; i < MAX_ROUTES; i++) {
@@ -1075,5 +1102,14 @@ void router_device_disconnected(uint8_t dev_addr, int8_t instance) {
 
             printf(LOG_TAG "Cleared output state for player %d\n", player_index);
         }
+    }
+}
+
+
+void router_set_dpad_mode(uint8_t mode) {
+    if (mode <= 2) {
+        global_dpad_mode = mode;
+        static const char* names[] = {"D-PAD", "LEFT STICK", "RIGHT STICK"};
+        printf(LOG_TAG "D-pad mode: %s\n", names[mode]);
     }
 }
