@@ -22,6 +22,9 @@
 // Input drivers
 #define REQUIRE_USB_HOST 0
 #define REQUIRE_GPIO_INPUT 0
+#ifndef REQUIRE_BT_INPUT
+#define REQUIRE_BT_INPUT 0          // BLE Central: scan for BT/BLE controllers
+#endif
 
 // Output drivers
 #ifndef REQUIRE_BLE_OUTPUT

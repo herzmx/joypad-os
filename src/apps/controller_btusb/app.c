@@ -52,6 +52,10 @@ extern int le_device_db_max_count(void);
 extern void le_device_db_remove(int index);
 #endif
 
+#if REQUIRE_BT_INPUT
+#include "bt/btstack/btstack_host.h"
+#endif
+
 // USB host input (conditional)
 #ifndef DISABLE_USB_HOST
 #include "usb/usbh/usbh.h"
@@ -92,6 +96,10 @@ static void on_button_event(button_event_t event)
 {
     switch (event) {
         case BUTTON_EVENT_CLICK:
+#if REQUIRE_BT_INPUT
+            printf("[app:controller_btusb] Starting 60s BT scan...\n");
+            btstack_host_start_timed_scan(60000);
+#endif
 #if REQUIRE_BLE_OUTPUT
             printf("[app:controller_btusb] BLE: %s (%s), USB: %s (%s)\n",
                    ble_output_get_mode_name(ble_output_get_mode()),
@@ -132,14 +140,20 @@ static void on_button_event(button_event_t event)
             break;
 
         case BUTTON_EVENT_HOLD:
-#if REQUIRE_BLE_OUTPUT
+#if REQUIRE_BLE_OUTPUT || REQUIRE_BT_INPUT
             printf("[app:controller_btusb] Long press - clearing BLE bonds\n");
+#if REQUIRE_BT_INPUT
+            btstack_host_disconnect_all_devices();
+            btstack_host_delete_all_bonds();
+#endif
             gap_delete_all_link_keys();
             for (int i = 0; i < le_device_db_max_count(); i++) {
                 le_device_db_remove(i);
             }
+#if REQUIRE_BLE_OUTPUT
             printf("[app:controller_btusb] Bonds cleared, restarting advertising\n");
             gap_advertisements_enable(1);
+#endif
 #else
             printf("[app:controller_btusb] Long press (no BLE on this board)\n");
 #endif
@@ -152,6 +166,18 @@ static void on_button_event(button_event_t event)
 
 // SInput RGB LED override: when true, host-sent RGB commands control NeoPixel
 static bool sinput_rgb_override = false;
+
+#if REQUIRE_BLE_OUTPUT && REQUIRE_BT_INPUT
+// Post-init callback: set up both BLE Peripheral (output) and BLE Central (input)
+static void bt_post_init(void)
+{
+    ble_output_late_init();
+    btstack_host_init_hid_handlers();
+    // Start scanning for BLE controllers
+    btstack_host_start_timed_scan(60000);
+    printf("[app:controller_btusb] BLE dual role: Peripheral + Central\n");
+}
+#endif
 
 // ============================================================================
 // APP INPUT INTERFACES
@@ -352,6 +378,14 @@ void app_init(void)
 #endif
 #endif
 
+#if REQUIRE_BT_INPUT
+    // Route: BLE Central (scanned controllers) → USB Device
+    router_add_route(INPUT_SOURCE_BLE_CENTRAL, OUTPUT_TARGET_USB_DEVICE, 0);
+#if REQUIRE_BLE_OUTPUT
+    router_add_route(INPUT_SOURCE_BLE_CENTRAL, OUTPUT_TARGET_BLE_PERIPHERAL, 0);
+#endif
+#endif
+
     // Configure player management
     player_config_t player_cfg = {
         .slot_mode = PLAYER_SLOT_MODE,
@@ -360,23 +394,30 @@ void app_init(void)
     };
     players_init_with_config(&player_cfg);
 
+#if REQUIRE_BLE_OUTPUT || REQUIRE_BT_INPUT
+    // Initialize BLE transport with post-init callback.
+    // Post-init runs in BTstack task context after HCI is ready.
 #if REQUIRE_BLE_OUTPUT
-    // Load BLE output mode from flash BEFORE starting BTstack task.
-    // The BTstack task calls ble_output_late_init() asynchronously,
-    // which needs current_mode to already be set from flash settings.
-    // (main.c output init loop will call this again — harmless double-init.)
-    ble_output_init();
+    ble_output_init();  // Load BLE mode from flash before BTstack starts
+#endif
 
-    // Initialize BLE transport in peripheral mode.
-    // Set post-init callback so ble_output_late_init() runs in the BTstack task context.
+    // Select post-init: dual role (Peripheral + Central) or single role
+#if REQUIRE_BLE_OUTPUT && REQUIRE_BT_INPUT
+    #define BT_POST_INIT bt_post_init
+#elif REQUIRE_BLE_OUTPUT
+    #define BT_POST_INIT ble_output_late_init
+#else
+    #define BT_POST_INIT btstack_host_init_hid_handlers
+#endif
+
 #ifdef BTSTACK_USE_CYW43
-    bt_cyw43_set_post_init(ble_output_late_init);
+    bt_cyw43_set_post_init(BT_POST_INIT);
     bt_init(&bt_transport_cyw43);
 #elif defined(BTSTACK_USE_ESP32)
-    bt_esp32_set_post_init(ble_output_late_init);
+    bt_esp32_set_post_init(BT_POST_INIT);
     bt_init(&bt_transport_esp32);
 #elif defined(BTSTACK_USE_NRF)
-    bt_nrf_set_post_init(ble_output_late_init);
+    bt_nrf_set_post_init(BT_POST_INIT);
     bt_init(&bt_transport_nrf);
 #endif
 #endif
