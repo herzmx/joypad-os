@@ -180,18 +180,18 @@ static void on_button_event(button_event_t event)
 static bool sinput_rgb_override = false;
 
 #if REQUIRE_BT_INPUT
-// Post-init callback: set up BLE Central (input scanning)
+// Post-init callback: set up BLE Central (input scanning) if enabled
 static void bt_central_post_init(void)
 {
 #if REQUIRE_BLE_OUTPUT
     ble_output_late_init();
 #endif
-    btstack_host_init_hid_handlers();
     if (bt_input_enabled) {
+        btstack_host_init_hid_handlers();
         btstack_host_start_timed_scan(60000);
-        printf("[app:controller_btusb] BT scanning enabled\n");
+        printf("[app:controller_btusb] BT Central enabled, scanning...\n");
     } else {
-        printf("[app:controller_btusb] BT scanning disabled (enable in web config)\n");
+        printf("[app:controller_btusb] BT Central disabled\n");
     }
 }
 #endif
@@ -318,15 +318,7 @@ void app_init(void)
         }
 #endif
         if (!jw_configured) {
-            // No flash config — fall back to compile-time defaults
-            joywing_config_t jw_cfg = {
-                .i2c_bus = JOYWING_I2C_BUS,
-                .sda_pin = JOYWING_SDA_PIN,
-                .scl_pin = JOYWING_SCL_PIN,
-            };
-            joywing_input_init_config(&jw_cfg);
-            printf("[app:controller_btusb] JoyWing configured (bus=%d, SDA=%d, SCL=%d)\n",
-                   JOYWING_I2C_BUS, JOYWING_SDA_PIN, JOYWING_SCL_PIN);
+            printf("[app:controller_btusb] No JoyWing config in flash (configure via web config)\n");
         }
 
 #ifdef SENSOR_PAD
@@ -360,7 +352,9 @@ void app_init(void)
             if (flash_data.routing_mode <= 2) router_cfg.mode = flash_data.routing_mode;
             if (flash_data.merge_mode <= 2) router_cfg.merge_mode = flash_data.merge_mode;
             if (flash_data.dpad_mode <= 2) router_set_dpad_mode(flash_data.dpad_mode);
+#if REQUIRE_BT_INPUT
             bt_input_enabled = flash_data.bt_input_enabled != 0;
+#endif
         }
     }
 

@@ -1088,12 +1088,10 @@ static void cmd_settings_reset(const char* json)
 {
     (void)json;
 
-    // Clear flash by writing defaults
-    flash_t flash_data = {0};
-    flash_save_now(&flash_data);
+    // Factory reset — erase all stored data
+    flash_factory_reset();
 
 #ifdef CONFIG_PAD_INPUT
-    // Also clear pad GPIO config
     pad_config_reset();
 #endif
 

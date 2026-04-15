@@ -73,6 +73,13 @@ void flash_init(void)
     runtime_settings_loaded = true;
 }
 
+void flash_factory_reset(void)
+{
+    if (!nvs_initialized) return;
+    nvs_clear(&nvs);
+    printf("[flash_nrf] Factory reset — all NVS data erased\n");
+}
+
 bool flash_load(flash_t* settings)
 {
     if (!nvs_initialized) return false;

@@ -351,6 +351,14 @@ void flash_save_force(const flash_t* settings)
     flash_save_now(settings);
 }
 
+void flash_factory_reset(void)
+{
+    // Erase the settings sector
+    flash_t empty = {0};
+    flash_save_now(&empty);
+    printf("[flash] Factory reset — settings erased\n");
+}
+
 // Task function to handle debounced flash writes (call from main loop)
 void flash_task(void)
 {

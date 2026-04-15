@@ -104,6 +104,9 @@ void flash_save_now(const flash_t* settings);
 // Force immediate save, ignoring BT-active check (use before device reset)
 void flash_save_force(const flash_t* settings);
 
+// Factory reset — erase all stored data (settings, bonds, pad config)
+void flash_factory_reset(void);
+
 // Task function to handle debounced flash writes (call from main loop)
 void flash_task(void);
 

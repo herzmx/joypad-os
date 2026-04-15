@@ -434,7 +434,7 @@ elseif(APP_TYPE STREQUAL "controller_btusb")
         "${BTSTACK_PATH}/src/ble/le_device_db_memory.c"
         "${BTSTACK_PATH}/src/ble/le_device_db_tlv.c"
 
-        # --- BTstack GATT server (peripheral mode) + GATT client services (central mode) ---
+        # --- BTstack GATT server (peripheral) + client services (central) ---
         "${BTSTACK_PATH}/src/ble/att_server.c"
         "${BTSTACK_PATH}/src/ble/gatt-service/hids_client.c"
         "${BTSTACK_PATH}/src/ble/gatt-service/battery_service_client.c"

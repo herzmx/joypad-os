@@ -770,7 +770,7 @@ void router_submit_input(const input_event_t* event) {
 #endif
 
     // Apply custom profile button remap (so Fn key remaps are visible to hotkeys)
-    input_event_t remapped;
+    static input_event_t remapped;
     bool did_remap = false;
     {
         const custom_profile_t* cp = flash_get_active_custom_profile();
