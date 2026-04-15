@@ -54,6 +54,9 @@ static dpad_mode_t dpad_mode = DPAD_MODE_DPAD;
 static bool prev_s1s2_held = false;
 static bool combo_used = false;
 
+// Per-combo action trigger state (prevent re-fire while held)
+static bool combo_fired[PAD_COMBO_MAX] = {false};
+
 // ADC initialized flag
 static bool adc_initialized = false;
 
@@ -513,6 +516,12 @@ void pad_input_clear_devices(void) {
     memset(pad_devices, 0, sizeof(pad_devices));
 }
 
+void pad_input_set_dpad_mode(uint8_t mode) {
+    if (mode <= DPAD_MODE_RIGHT_STICK) {
+        dpad_mode = (dpad_mode_t)mode;
+    }
+}
+
 uint8_t pad_input_get_device_count(void) {
     return pad_device_count;
 }
@@ -571,12 +580,44 @@ static void pad_input_task(void) {
         }
 #endif
 
-        // Apply button combo remaps from config
+        // Apply button combo hotkeys from config
         for (int c = 0; c < PAD_COMBO_MAX; c++) {
             uint32_t in = pad_devices[i]->combo[c].input_mask;
             uint32_t out = pad_devices[i]->combo[c].output_mask;
-            if (in && (pad_events[i].buttons & in) == in) {
-                pad_events[i].buttons = (pad_events[i].buttons & ~in) | out;
+            if (!in) continue;
+
+            bool held = (pad_events[i].buttons & in) == in;
+            if (!held) {
+                combo_fired[c] = false;
+                continue;
+            }
+
+            uint8_t action = (out >> PAD_COMBO_ACTION_SHIFT) & 0xFF;
+            switch (action) {
+                case PAD_COMBO_ACTION_REMAP:
+                    pad_events[i].buttons = (pad_events[i].buttons & ~in) | (out & PAD_COMBO_BUTTON_MASK);
+                    break;
+                case PAD_COMBO_ACTION_DPAD_DPAD:
+                case PAD_COMBO_ACTION_DPAD_LSTICK:
+                case PAD_COMBO_ACTION_DPAD_RSTICK: {
+                    dpad_mode_t new_mode = action - PAD_COMBO_ACTION_DPAD_DPAD;
+                    if (!combo_fired[c] && dpad_mode != new_mode) {
+                        dpad_mode = new_mode;
+                        static const char* mode_names[] = {"D-PAD", "LEFT STICK", "RIGHT STICK"};
+                        printf("[pad] D-pad mode: %s\n", mode_names[dpad_mode]);
+                        combo_fired[c] = true;
+                    }
+                    pad_events[i].buttons &= ~in;
+                    break;
+                }
+                case PAD_COMBO_ACTION_PROFILE_NEXT:
+                    if (!combo_fired[c]) {
+                        extern void profile_cycle_next(uint8_t output);
+                        profile_cycle_next(0);  // Cycle profile for first output
+                        combo_fired[c] = true;
+                    }
+                    pad_events[i].buttons &= ~in;
+                    break;
             }
         }
 

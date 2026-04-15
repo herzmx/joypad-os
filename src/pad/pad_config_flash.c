@@ -106,6 +106,8 @@ void pad_config_to_flash(const pad_device_config_t* config, pad_config_flash_t* 
         flash->combo[i].input_mask = config->combo[i].input_mask;
         flash->combo[i].output_mask = config->combo[i].output_mask;
     }
+
+    flash->dpad_mode = config->dpad_mode;
 }
 
 const pad_device_config_t* pad_config_from_flash(const pad_config_flash_t* flash)
@@ -193,6 +195,8 @@ const pad_device_config_t* pad_config_from_flash(const pad_config_flash_t* flash
         runtime_config.combo[i].input_mask = flash->combo[i].input_mask;
         runtime_config.combo[i].output_mask = flash->combo[i].output_mask;
     }
+
+    runtime_config.dpad_mode = flash->dpad_mode;
 
     return &runtime_config;
 }

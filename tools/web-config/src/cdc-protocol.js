@@ -678,6 +678,15 @@ class CDCProtocol {
         return this.sendCommand('DEBUG.STREAM', { enable });
     }
 
+    // Router Config
+    async getRouter() {
+        return this.sendCommand('ROUTER.GET');
+    }
+
+    async setRouter(config) {
+        return this.sendCommand('ROUTER.SET', config);
+    }
+
     // Pad GPIO Config
     async getPadConfig() {
         return this.sendCommand('PAD.CONFIG.GET');

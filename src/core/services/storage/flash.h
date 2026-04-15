@@ -67,9 +67,12 @@ typedef struct {
 
     // Global settings (continued)
     uint8_t ble_output_mode;     // BLE output mode (0=Standard composite, 1=Xbox BLE)
+    uint8_t routing_mode;        // Router mode (0=simple, 1=merge, 2=broadcast)
+    uint8_t merge_mode;          // Merge mode (0=priority, 1=blend, 2=all)
+    uint8_t dpad_mode;           // D-pad mode (0=dpad, 1=left stick, 2=right stick)
 
-    // Reserved for future global settings (19 bytes)
-    uint8_t reserved[19];
+    // Reserved for future global settings (16 bytes)
+    uint8_t reserved[16];
 
     // Custom profiles (4 x 56 = 224 bytes)
     custom_profile_t profiles[CUSTOM_PROFILE_MAX_COUNT];

@@ -7,6 +7,7 @@ import { ProfilesCard, BUTTON_NAMES, BUTTON_LABELS, REMAPPABLE_COUNT } from './c
 import { InputTestCard } from './components/input-test.js';
 import { UsbHostCard } from './components/usb-host.js';
 import { FeedbackCard } from './components/leds.js';
+import { RouterCard } from './components/router.js';
 import { HotkeysCard } from './components/hotkeys.js';
 import { BtHostCard } from './components/bt-host.js';
 import { AdvancedCard } from './components/advanced.js';
@@ -63,6 +64,7 @@ class JoypadConfigApp {
         this.btOutput = new BtOutputCard(document.getElementById('cardBtOutput'), this.protocol, log);
         this.padConfig = new PadConfigCard(document.getElementById('cardPadConfig'), this.protocol, log);
         this.feedback = new FeedbackCard(document.getElementById('cardFeedback'), this.protocol, log);
+        this.router = new RouterCard(document.getElementById('cardRouter'), this.protocol, log);
         this.hotkeys = new HotkeysCard(document.getElementById('cardHotkeys'), this.protocol, log);
         this.usbHost = new UsbHostCard(document.getElementById('cardUsbHost'), this.protocol, log);
         this.btHost = new BtHostCard(document.getElementById('cardBtHost'), this.protocol, log);
@@ -76,6 +78,7 @@ class JoypadConfigApp {
         this.btOutput.render();
         this.padConfig.render();
         this.feedback.render();
+        this.router.render();
         this.hotkeys.render();
         this.usbHost.render();
         this.btHost.render();
@@ -370,6 +373,7 @@ class JoypadConfigApp {
         await this.btOutput.load();
         await this.padConfig.load();
         await this.feedback.load();
+        await this.router.load();
         await this.hotkeys.load();
         await this.usbHost.load();
         await this.btHost.load();

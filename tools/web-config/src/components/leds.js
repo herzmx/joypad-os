@@ -142,6 +142,7 @@ export class FeedbackCard {
             i2c_sda: this.currentConfig.i2c_sda !== undefined ? this.currentConfig.i2c_sda : -1,
             i2c_scl: this.currentConfig.i2c_scl !== undefined ? this.currentConfig.i2c_scl : -1,
             deadzone: this.currentConfig.deadzone || 10,
+            dpad_mode: this.currentConfig.dpad_mode || 0,
             buttons: this.currentConfig.buttons || [],
             adc: this.currentConfig.adc || [-1, -1, -1, -1, -1, -1],
             invert_lx: this.currentConfig.invert_lx || false,

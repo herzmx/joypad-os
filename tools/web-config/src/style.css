@@ -780,8 +780,9 @@ input[type="text"]:focus { outline: none; border-color: var(--accent); }
 .combo-btn {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    padding: 3px 6px;
+    justify-content: center;
+    width: 32px;
+    padding: 4px 0;
     border: 1px solid var(--border);
     border-radius: 4px;
     font-size: 11px;

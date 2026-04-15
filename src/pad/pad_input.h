@@ -153,13 +153,14 @@ typedef struct {
         uint8_t addr;           // I2C address (default 0x49)
     } joywing[2];
 
-    // Button combo remaps (up to 4)
-    // When all input_mask buttons pressed, output_mask buttons are added
-    // and input_mask buttons are removed from output
+    // Button combo hotkeys (up to 4)
     struct {
         uint32_t input_mask;    // 0 = disabled
-        uint32_t output_mask;
+        uint32_t output_mask;   // upper byte = action, lower 22 bits = buttons
     } combo[4];
+
+    // D-pad mode: 0=dpad, 1=left stick, 2=right stick
+    uint8_t dpad_mode;
 } pad_device_config_t;
 
 // ============================================================================
@@ -173,6 +174,9 @@ int pad_input_add_device(const pad_device_config_t* config);
 
 // Remove all pad devices
 void pad_input_clear_devices(void);
+
+// Set d-pad mode (0=dpad, 1=left stick, 2=right stick)
+void pad_input_set_dpad_mode(uint8_t mode);
 
 // Get number of registered pad devices
 uint8_t pad_input_get_device_count(void);

@@ -12,9 +12,10 @@ const BUTTON_LABELS = {
     'S1': 'Select / Back', 'S2': 'Start / Menu', 'L3': 'L3 / LS', 'R3': 'R3 / RS',
     'DU': 'D-Pad Up', 'DD': 'D-Pad Down', 'DL': 'D-Pad Left', 'DR': 'D-Pad Right',
     'A1': 'Home / Guide', 'A2': 'Capture / Touchpad',
+    'A3': 'Aux 3', 'A4': 'Aux 4', 'L4': 'Left Paddle', 'R4': 'Right Paddle',
 };
 
-const REMAPPABLE_COUNT = 18;
+const REMAPPABLE_COUNT = 22;
 const FLAG_SWAP_STICKS = 1;
 const FLAG_INVERT_LY = 2;
 const FLAG_INVERT_RY = 4;

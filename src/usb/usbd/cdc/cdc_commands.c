@@ -1032,6 +1032,42 @@ static void cmd_settings_get(const char* json)
     send_json(response_buf);
 }
 
+static void cmd_router_get(const char* json)
+{
+    (void)json;
+    flash_t flash_data;
+    if (flash_load(&flash_data)) {
+        snprintf(response_buf, sizeof(response_buf),
+                 "{\"ok\":true,\"routing_mode\":%d,\"merge_mode\":%d,\"dpad_mode\":%d}",
+                 flash_data.routing_mode, flash_data.merge_mode, flash_data.dpad_mode);
+    } else {
+        snprintf(response_buf, sizeof(response_buf),
+                 "{\"ok\":true,\"routing_mode\":0,\"merge_mode\":0,\"dpad_mode\":0}");
+    }
+    send_json(response_buf);
+}
+
+static void cmd_router_set(const char* json)
+{
+    flash_t flash_data;
+    if (!flash_load(&flash_data)) {
+        memset(&flash_data, 0, sizeof(flash_data));
+    }
+
+    int ival;
+    if (json_get_int(json, "routing_mode", &ival)) flash_data.routing_mode = (uint8_t)ival;
+    if (json_get_int(json, "merge_mode", &ival)) flash_data.merge_mode = (uint8_t)ival;
+    if (json_get_int(json, "dpad_mode", &ival)) flash_data.dpad_mode = (uint8_t)ival;
+
+    flash_save(&flash_data);
+
+    snprintf(response_buf, sizeof(response_buf), "{\"ok\":true,\"reboot\":true}");
+    send_json(response_buf);
+
+    pending_reboot = PENDING_REBOOT;
+    pending_reboot_time = platform_time_ms();
+}
+
 static void cmd_settings_reset(const char* json)
 {
     (void)json;
@@ -1462,9 +1498,9 @@ static void cmd_pad_config_get(const char* json)
                     ",\"i2c_sda\":%d,\"i2c_scl\":%d",
                     flash_data.i2c_sda, flash_data.i2c_scl);
 
-    // Deadzone
+    // Deadzone + d-pad mode
     pos += snprintf(response_buf + pos, sizeof(response_buf) - pos,
-                    ",\"deadzone\":%d", flash_data.deadzone);
+                    ",\"deadzone\":%d,\"dpad_mode\":%d", flash_data.deadzone, flash_data.dpad_mode);
 
     // Buttons array
     pos += snprintf(response_buf + pos, sizeof(response_buf) - pos, ",\"buttons\":[");
@@ -1573,6 +1609,8 @@ static void cmd_pad_config_set(const char* json)
     // Deadzone
     config.deadzone = 10;
     if (json_get_int(json, "deadzone", &ival)) config.deadzone = (uint8_t)ival;
+    config.dpad_mode = 0;
+    if (json_get_int(json, "dpad_mode", &ival)) config.dpad_mode = (uint8_t)ival;
 
     // Buttons array (22 int16_t values)
     int16_t buttons[22];
@@ -1798,6 +1836,8 @@ static const cmd_entry_t commands[] = {
     {"DEBUG.STREAM", cmd_debug_stream},
     {"SETTINGS.GET", cmd_settings_get},
     {"SETTINGS.RESET", cmd_settings_reset},
+    {"ROUTER.GET", cmd_router_get},
+    {"ROUTER.SET", cmd_router_set},
     // Player management
     {"PLAYERS.LIST", cmd_players_list},
     // Rumble testing

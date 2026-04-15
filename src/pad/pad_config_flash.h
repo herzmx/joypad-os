@@ -96,16 +96,28 @@ typedef struct {
         uint8_t addr;           // I2C address (default 0x49)
     } joywing[2];
 
-    // Button combo remaps (32 bytes — 4 slots × 8 bytes each)
-    // When all input_mask buttons pressed, output_mask buttons are added
+    // Button combo hotkeys (32 bytes — 4 slots × 8 bytes each)
+    // When all input_mask buttons pressed, action is performed.
+    // output_mask upper byte = action type, lower 22 bits = button mask (for remap)
     #define PAD_COMBO_MAX 4
+    #define PAD_COMBO_ACTION_REMAP       0x00  // Replace input with output buttons
+    #define PAD_COMBO_ACTION_DPAD_DPAD   0x01  // Set d-pad mode: D-Pad
+    #define PAD_COMBO_ACTION_DPAD_LSTICK 0x02  // Set d-pad mode: Left Stick
+    #define PAD_COMBO_ACTION_DPAD_RSTICK 0x03  // Set d-pad mode: Right Stick
+    #define PAD_COMBO_ACTION_PROFILE_NEXT 0x04 // Next profile
+    #define PAD_COMBO_ACTION_SHIFT       24
+    #define PAD_COMBO_ACTION_MASK        0xFF000000
+    #define PAD_COMBO_BUTTON_MASK        0x003FFFFF
     struct {
         uint32_t input_mask;    // buttons that must all be pressed (0 = disabled)
-        uint32_t output_mask;   // buttons to output (replaces input combo buttons)
+        uint32_t output_mask;   // upper byte = action, lower 22 bits = output buttons
     } combo[4];
 
+    // D-pad mode (1 byte): 0=dpad, 1=left stick, 2=right stick
+    uint8_t dpad_mode;
+
     // Reserved for future use (pad to 256 bytes)
-    uint8_t reserved[100];
+    uint8_t reserved[99];
 } pad_config_flash_t;
 
 _Static_assert(sizeof(pad_config_flash_t) == 256, "pad_config_flash_t must be exactly 256 bytes");

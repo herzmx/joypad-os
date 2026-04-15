@@ -1,5 +1,16 @@
-/** Hotkeys Page — Button combo remapping */
+/** Hotkeys Page — Button combo remapping and actions */
 import { BUTTON_NAMES, BUTTON_LABELS } from './profiles.js';
+
+const COMBO_ACTION_SHIFT = 24;
+const COMBO_BUTTON_MASK = 0x003FFFFF;
+
+const ACTIONS = [
+    { id: 0, name: 'Button Remap' },
+    { id: 1, name: 'D-Pad → D-Pad' },
+    { id: 2, name: 'D-Pad → Left Stick' },
+    { id: 3, name: 'D-Pad → Right Stick' },
+    { id: 4, name: 'Next Profile' },
+];
 
 export class HotkeysCard {
     constructor(container, protocol, log) {
@@ -12,23 +23,23 @@ export class HotkeysCard {
 
     render() {
         const comboRows = [0, 1, 2, 3].map(i => `
-            <div class="combo-row" id="comboRow${i}" style="margin-bottom: 12px;">
-                <div class="pad-form-row" style="margin-bottom: 4px;">
+            <div class="combo-row" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+                <div class="pad-form-row" style="margin-bottom: 8px;">
                     <span class="label">Combo ${i + 1}</span>
+                    <select id="comboAction${i}" style="width: auto; min-width: 140px;">
+                        ${ACTIONS.map(a => `<option value="${a.id}">${a.name}</option>`).join('')}
+                    </select>
                 </div>
-                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 120px;">
-                        <div class="hint" style="margin-bottom: 4px;">Input (hold together)</div>
-                        <div class="combo-buttons" id="comboIn${i}">
-                            ${this.buildCheckboxes(`ci${i}`, true)}
-                        </div>
+                <div style="margin-bottom: 4px;">
+                    <div class="hint" style="margin-bottom: 4px;">Input (hold together)</div>
+                    <div class="combo-buttons" id="comboIn${i}">
+                        ${this.buildCheckboxes(`ci${i}`)}
                     </div>
-                    <span style="color: var(--text-muted); font-size: 18px;">→</span>
-                    <div style="flex: 1; min-width: 120px;">
-                        <div class="hint" style="margin-bottom: 4px;">Output</div>
-                        <div class="combo-buttons" id="comboOut${i}">
-                            ${this.buildCheckboxes(`co${i}`, false)}
-                        </div>
+                </div>
+                <div id="comboOutWrap${i}">
+                    <div class="hint" style="margin-bottom: 4px; margin-top: 8px;">Output</div>
+                    <div class="combo-buttons" id="comboOut${i}">
+                        ${this.buildCheckboxes(`co${i}`)}
                     </div>
                 </div>
             </div>
@@ -38,7 +49,7 @@ export class HotkeysCard {
             <div class="card" id="hotkeysCard" style="display:none;">
                 <h2>Hotkeys</h2>
                 <div class="card-content">
-                    <p class="hint">Map button combos to different buttons. When all input buttons are held, they are replaced with the output buttons.</p>
+                    <p class="hint">Map button combos to actions or other buttons.</p>
                     ${comboRows}
                     <div class="buttons" style="margin-top: 12px;">
                         <button id="hotkeysSaveBtn">Save &amp; Reboot</button>
@@ -47,19 +58,21 @@ export class HotkeysCard {
                 </div>
             </div>`;
 
+        // Wire up action select to show/hide output buttons
+        for (let i = 0; i < 4; i++) {
+            this.el.querySelector(`#comboAction${i}`).addEventListener('change', (e) => {
+                const showOutput = parseInt(e.target.value) === 0;
+                this.el.querySelector(`#comboOutWrap${i}`).style.display = showOutput ? '' : 'none';
+            });
+        }
         this.el.querySelector('#hotkeysSaveBtn').addEventListener('click', () => this.save());
     }
 
-    buildCheckboxes(prefix, isInput) {
-        // For input: show common combo buttons (S1, S2, L1, R1, etc.)
-        // For output: show all buttons
-        const buttons = BUTTON_NAMES;
-
-        return buttons.map((name, idx) => {
-            const bitIdx = BUTTON_NAMES.indexOf(name);
+    buildCheckboxes(prefix) {
+        return BUTTON_NAMES.map((name, idx) => {
             const label = BUTTON_LABELS[name] || name;
             return `<label class="combo-btn" title="${label}">
-                <input type="checkbox" data-bit="${bitIdx}" id="${prefix}_${bitIdx}">
+                <input type="checkbox" data-bit="${idx}" id="${prefix}_${idx}">
                 <span>${name}</span>
             </label>`;
         }).join('');
@@ -97,8 +110,15 @@ export class HotkeysCard {
             const combos = config.combos || [];
             for (let i = 0; i < 4; i++) {
                 const combo = combos[i] || [0, 0];
-                this.maskToChecks(`ci${i}`, combo[0]);
-                this.maskToChecks(`co${i}`, combo[1]);
+                const inputMask = combo[0];
+                const outputRaw = combo[1];
+                const action = (outputRaw >>> COMBO_ACTION_SHIFT) & 0xFF;
+                const outputButtons = outputRaw & COMBO_BUTTON_MASK;
+
+                this.maskToChecks(`ci${i}`, inputMask);
+                this.el.querySelector(`#comboAction${i}`).value = action;
+                this.maskToChecks(`co${i}`, outputButtons);
+                this.el.querySelector(`#comboOutWrap${i}`).style.display = action === 0 ? '' : 'none';
             }
         } catch (e) {
             card.style.display = 'none';
@@ -116,6 +136,7 @@ export class HotkeysCard {
             i2c_sda: this.currentConfig.i2c_sda !== undefined ? this.currentConfig.i2c_sda : -1,
             i2c_scl: this.currentConfig.i2c_scl !== undefined ? this.currentConfig.i2c_scl : -1,
             deadzone: this.currentConfig.deadzone || 10,
+            dpad_mode: this.currentConfig.dpad_mode || 0,
             buttons: this.currentConfig.buttons || [],
             adc: this.currentConfig.adc || [-1, -1, -1, -1, -1, -1],
             invert_lx: this.currentConfig.invert_lx || false,
@@ -153,10 +174,12 @@ export class HotkeysCard {
             })(),
         };
 
-        // Add combo remaps
+        // Add combo hotkeys
         for (let i = 0; i < 4; i++) {
+            const action = parseInt(this.el.querySelector(`#comboAction${i}`).value);
+            const outputButtons = this.checksToMask(`co${i}`);
             config[`combo${i}_in`] = this.checksToMask(`ci${i}`);
-            config[`combo${i}_out`] = this.checksToMask(`co${i}`);
+            config[`combo${i}_out`] = (action << COMBO_ACTION_SHIFT) | (outputButtons & COMBO_BUTTON_MASK);
         }
 
         try {
