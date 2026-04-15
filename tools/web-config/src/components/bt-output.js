@@ -16,10 +16,10 @@ export class BtOutputCard {
                         <span class="label">Current Mode</span>
                         <select id="bleModeSelect"><option value="">Loading...</option></select>
                     </div>
-                    <p class="hint">Changing mode will reboot the device.</p>
                     <div class="buttons" style="margin-top: 12px;">
                         <button id="bleModeSaveBtn">Save &amp; Reboot</button>
                     </div>
+                    <p class="hint" style="margin-top: 8px;">Device will reboot to apply changes.</p>
                 </div>
             </div>`;
 

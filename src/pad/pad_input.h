@@ -227,6 +227,16 @@ extern const InputInterface pad_input_interface;
     .deadzone = 10, \
     .led_pin = PAD_PIN_DISABLED, \
     .led_count = 0, \
+    .speaker_pin = PAD_PIN_DISABLED, \
+    .speaker_enable_pin = PAD_PIN_DISABLED, \
+    .display_spi = PAD_PIN_DISABLED, \
+    .display_sck = PAD_PIN_DISABLED, \
+    .display_mosi = PAD_PIN_DISABLED, \
+    .display_cs = PAD_PIN_DISABLED, \
+    .display_dc = PAD_PIN_DISABLED, \
+    .display_rst = PAD_PIN_DISABLED, \
+    .qwiic_tx = PAD_PIN_DISABLED, \
+    .qwiic_rx = PAD_PIN_DISABLED, \
     .qwiic_i2c_inst = PAD_PIN_DISABLED, \
     .usb_host_dp = PAD_PIN_DISABLED, \
     .joywing = { \

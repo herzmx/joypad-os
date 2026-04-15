@@ -93,14 +93,12 @@ export class PadConfigCard {
 
                 <!-- Analog Tab -->
                 <div class="sub-tab-content" id="tabAnalog" data-tab="analog">
-                    <h3 style="margin-bottom: 8px;">Stick Assignments (ADC)</h3>
+                    <h3 style="margin-bottom: 8px;">Sticks (ADC)</h3>
                     <div class="pad-pin-grid">
                         ${adcRow('Left X', 'padAdcLX')}
                         ${adcRow('Left Y', 'padAdcLY')}
                         ${adcRow('Right X', 'padAdcRX')}
                         ${adcRow('Right Y', 'padAdcRY')}
-                        ${adcRow('Left Trigger', 'padAdcLT')}
-                        ${adcRow('Right Trigger', 'padAdcRT')}
                     </div>
                     <div class="pad-form-row" style="margin-top: 12px;">
                         <span class="label">Deadzone</span>
@@ -108,6 +106,11 @@ export class PadConfigCard {
                             <input type="range" id="padDeadzone" min="0" max="127" value="10" style="width: 120px;">
                             <span id="padDeadzoneValue">10</span>
                         </div>
+                    </div>
+                    <h3 style="margin-top: 16px; margin-bottom: 8px;">Triggers (ADC)</h3>
+                    <div class="pad-pin-grid">
+                        ${adcRow('Left Trigger', 'padAdcLT')}
+                        ${adcRow('Right Trigger', 'padAdcRT')}
                     </div>
                 </div>
 
@@ -161,24 +164,15 @@ export class PadConfigCard {
                         <input type="number" id="padI2cScl" min="-1" max="47" value="-1">
                     </div>
 
-                    <h3 style="margin-top: 12px; margin-bottom: 8px;">Speaker</h3>
-                    <div class="pad-form-row">
-                        <span class="label">Speaker Pin</span>
-                        <input type="number" id="padSpeakerPin" min="-1" max="47" value="-1">
-                    </div>
-                    <div class="pad-form-row">
-                        <span class="label">Enable Pin</span>
-                        <input type="number" id="padSpeakerEnablePin" min="-1" max="47" value="-1">
-                    </div>
                 </div>
 
                 <div id="padPinConflicts" class="pad-conflicts" style="display:none;"></div>
 
-                <div class="buttons" style="margin-top: 16px;">
+                <div class="buttons" style="margin-top: 12px;">
                     <button id="padSaveBtn">Save &amp; Reboot</button>
                     <button id="padResetBtn" class="secondary">Reset to Default</button>
                 </div>
-                <p class="hint" style="margin-top: 8px;">Saving will reboot the device to apply changes.</p>
+                <p class="hint" style="margin-top: 8px;">Device will reboot to apply changes.</p>
             </div>`;
 
         // Sub-tab switching
@@ -302,10 +296,6 @@ export class PadConfigCard {
             this.el.querySelector('#padDeadzone').value = config.deadzone || 10;
             this.el.querySelector('#padDeadzoneValue').textContent = config.deadzone || 10;
 
-            // Speaker
-            this.el.querySelector('#padSpeakerPin').value = config.speaker_pin !== undefined ? config.speaker_pin : -1;
-            this.el.querySelector('#padSpeakerEnablePin').value = config.speaker_enable_pin !== undefined ? config.speaker_enable_pin : -1;
-
             // JoyWing (array of [bus, sda, scl])
             // JoyWing: array of [bus, sda, scl, addr]
             const jw = config.joywing || [];
@@ -423,8 +413,8 @@ export class PadConfigCard {
             ],
             led_pin: this.currentConfig?.led_pin !== undefined ? this.currentConfig.led_pin : -1,
             led_count: this.currentConfig?.led_count || 0,
-            speaker_pin: parseInt(this.el.querySelector('#padSpeakerPin').value),
-            speaker_enable_pin: parseInt(this.el.querySelector('#padSpeakerEnablePin').value),
+            speaker_pin: this.currentConfig?.speaker_pin !== undefined ? this.currentConfig.speaker_pin : -1,
+            speaker_enable_pin: this.currentConfig?.speaker_enable_pin !== undefined ? this.currentConfig.speaker_enable_pin : -1,
             ...(() => {
                 const jw = {};
                 for (let i = 0; i < 2; i++) {

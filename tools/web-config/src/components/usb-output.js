@@ -26,7 +26,7 @@ export class UsbOutputCard {
                     <div class="buttons" style="margin-top: 12px;">
                         <button id="modeSaveBtn">Save &amp; Reboot</button>
                     </div>
-                    <p class="hint" style="margin-top: 8px;">Changing mode will reboot the device.</p>
+                    <p class="hint" style="margin-top: 8px;">Device will reboot to apply changes.</p>
                 </div>
             </div>`;
 

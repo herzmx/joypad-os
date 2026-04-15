@@ -30,9 +30,10 @@ export class UsbHostCard {
                             <span class="hint">Always D+ next pin</span>
                         </div>
                     </div>
-                    <div class="buttons" style="margin-top: 15px;">
+                    <div class="buttons" style="margin-top: 12px;">
                         <button id="usbHostSaveBtn">Save &amp; Reboot</button>
                     </div>
+                    <p class="hint" style="margin-top: 8px;">Device will reboot to apply changes.</p>
                 </div>
             </div>`;
 
