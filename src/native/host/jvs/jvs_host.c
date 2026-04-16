@@ -22,17 +22,15 @@
 
 typedef struct {
     int8_t type;
-    uint32_t last_buttons;
 } jvs_pad_t;
 
 static jvs_pad_t jvs_pads[JVS_MAX_PLAYERS];
 static bool initialized = false;
-static uint16_t jvs_analog_axes[JVS_MAX_PLAYERS][4];
 // Track previous state for edge detection
 static uint32_t prev_buttons[JVS_MAX_PLAYERS] = {0};
 static uint32_t coin_release_time[JVS_MAX_PLAYERS] = {0};
-uint8_t jvs_comm_method = 0;
-const uint JVS_COMM_SPEEDS[3] = { 115200, 1000000, 3000000 };
+static uint8_t jvs_comm_method = 0;
+static const uint JVS_COMM_SPEEDS[3] = { 115200, 1000000, 3000000 };
 
 // ============================================================================
 // JVS Client Functions
@@ -186,7 +184,7 @@ void JVSIO_Client_functionCheckReceived(uint8_t address, uint8_t* data, uint8_t 
                 break;
 
             case 0x04: // Rotary Input
-                printf(" - Rotary Input: %d chanels\n", p1);
+                printf(" - Rotary Input: %d channels\n", p1);
                 break;
 
             case 0x05: // Keycode Input
@@ -194,7 +192,7 @@ void JVSIO_Client_functionCheckReceived(uint8_t address, uint8_t* data, uint8_t 
                 break;
 
             case 0x06: // Screen Position Input
-                printf(" - Screen Position Input: %d-Xbits, %d-Ybits, %d chanels\n", p1, p2, p3);
+                printf(" - Screen Position Input: %d-Xbits, %d-Ybits, %d channels\n", p1, p2, p3);
                 break;
 
             case 0x07: // Misc. Switch Input
@@ -207,14 +205,14 @@ void JVSIO_Client_functionCheckReceived(uint8_t address, uint8_t* data, uint8_t 
                 break;
 
             case 0x11: // Medal Hopper
-                printf(" - Medal Hopper: %d chanels\n", p1);
+                printf(" - Medal Hopper: %d channels\n", p1);
                 break;
             case 0x12: // General-purpose Output
                 printf(" - General-purpose Output: %d slots\n", p1);
                 break;
 
             case 0x13: // Analog Output
-                printf(" - Analog Output: %d\n chanels", p1);
+                printf(" - Analog Output: %d channels\n", p1);
                 break;
 
             case 0x14: // Character Output
@@ -239,12 +237,10 @@ void JVSIO_Client_functionCheckReceived(uint8_t address, uint8_t* data, uint8_t 
 void JVSIO_Client_synced(uint8_t players, uint8_t coin_state, uint8_t* sw_state0, uint8_t* sw_state1) {   
     // Get input for JVS_MAX_PLAYERS
     for (int i = 0; i < players && i < JVS_MAX_PLAYERS; i++) {
-         // Map buttons based on device type
+        // Map buttons based on device type
+        // Analog axes default to 128 (center) via init_input_event below.
+        // TODO: read JVS analog channels and populate event.analog[].
         uint32_t buttons = 0x00000000;
-        uint8_t analog_1x = 128;  // Center
-        uint8_t analog_1y = 128;
-        uint8_t analog_2x = 128;
-        uint8_t analog_2y = 128;
 
         // sw_state0[i] bits:
         // 7: Start | 6: Service | 5: Up | 4: Down | 3: Left | 2: Right | 1: B1 | 0: B2
@@ -277,12 +273,12 @@ void JVSIO_Client_synced(uint8_t players, uint8_t coin_state, uint8_t* sw_state0
            buttons |= JP_BUTTON_A1;
         }
 
-        // COIN as SELECT
+        // COIN as SELECT — pulse for 200ms (signed diff handles tick wraparound)
+        uint32_t now = JVSIO_Client_getTick();
         if (coin_state & (1 << i)) {
-            coin_release_time[i] = JVSIO_Client_getTick() + 200; 
+            coin_release_time[i] = now + 200;
         }
-
-        if (JVSIO_Client_getTick() < coin_release_time[i]) {
+        if ((int32_t)(coin_release_time[i] - now) > 0) {
             buttons |= JP_BUTTON_S1;
         }
 
@@ -300,10 +296,6 @@ void JVSIO_Client_synced(uint8_t players, uint8_t coin_state, uint8_t* sw_state0
         event.instance = 0;
         event.type = INPUT_TYPE_ARCADE_STICK;
         event.buttons = buttons;
-        event.analog[ANALOG_LX] = analog_1x;
-        event.analog[ANALOG_LY] = analog_1y;
-        event.analog[ANALOG_RX] = analog_2x;
-        event.analog[ANALOG_RY] = analog_2y;
         event.analog[ANALOG_L2] = (buttons & JP_BUTTON_L2) ? 255 : 0;
         event.analog[ANALOG_R2] = (buttons & JP_BUTTON_R2) ? 255 : 0;
 

@@ -11,7 +11,6 @@
 #include "core/services/profiles/profile.h"
 #include "core/input_interface.h"
 #include "core/output_interface.h"
-#include "core/services/button/button.h"
 #include "usb/usbd/usbd.h"
 #include "native/host/jvs/jvs_host.h"
 #include <stdio.h>
@@ -29,14 +28,10 @@ static void on_button_event(button_event_t event)
             break;
 
         case BUTTON_EVENT_DOUBLE_CLICK: {
-            // Double-click to cycle USB output mode
-            printf("[app:jvs2usb] Double-click - switching USB output mode...\n");
-            tud_task();
-            sleep_ms(50);
-            tud_task();
-
+            // Cycle to next mode (usbd_set_mode flushes debug + saves to flash)
             usb_output_mode_t next = usbd_get_next_mode();
-            printf("[app:jvs2usb] Switching to %s\n", usbd_get_mode_name(next));
+            printf("[app:jvs2usb] Double-click - switching USB mode → %s\n",
+                   usbd_get_mode_name(next));
             usbd_set_mode(next);
             break;
         }
