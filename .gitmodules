@@ -20,3 +20,7 @@
 [submodule "src/lib/jvsio"]
 	path = src/lib/jvsio
 	url = https://github.com/herzmx/jvsio.git
+[submodule "src/lib/libxsm3"]
+	path = src/lib/libxsm3
+	url = https://github.com/RobertDaleSmith/libxsm3.git
+	branch = joypad-embedded
