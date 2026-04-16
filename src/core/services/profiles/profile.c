@@ -827,22 +827,25 @@ void profile_apply(const profile_t* profile,
         output->r2_analog = 255;
     }
 
-    // Set L2/R2 digital buttons based on analog threshold (if threshold > 0)
-    // When threshold is set, it OVERRIDES input L2/R2 (e.g. DualSense's early digital)
-    // Threshold of 0 means passthrough (use input driver's L2/R2 as-is)
-    if (profile) {
-        if (profile->l2_threshold > 0) {
-            output->buttons &= ~JP_BUTTON_L2;
-            if (l2 >= profile->l2_threshold) {
-                output->buttons |= JP_BUTTON_L2;
-            }
-        }
-        if (profile->r2_threshold > 0) {
-            output->buttons &= ~JP_BUTTON_R2;
-            if (r2 >= profile->r2_threshold) {
-                output->buttons |= JP_BUTTON_R2;
-            }
-        }
+    // Set L2/R2 digital buttons based on analog threshold.
+    // When threshold > 0 it OVERRIDES input L2/R2 (e.g. DualSense's early
+    // digital). Threshold == 0 means passthrough.
+    //
+    // When no built-in profile is active (e.g. usb2usb without a console
+    // profile), fall back to a default half-press threshold of 128 so
+    // analog-only trigger controllers (Xbox BT, etc.) still produce a
+    // digital button bit for output modes that read JP_BUTTON_L2/R2.
+    // Custom profiles may override this post-hoc (see usbd/ble output
+    // paths) using their own per-profile threshold fields.
+    uint8_t eff_l2_thresh = profile ? profile->l2_threshold : 128;
+    uint8_t eff_r2_thresh = profile ? profile->r2_threshold : 128;
+    if (eff_l2_thresh > 0) {
+        output->buttons &= ~JP_BUTTON_L2;
+        if (l2 >= eff_l2_thresh) output->buttons |= JP_BUTTON_L2;
+    }
+    if (eff_r2_thresh > 0) {
+        output->buttons &= ~JP_BUTTON_R2;
+        if (r2 >= eff_r2_thresh) output->buttons |= JP_BUTTON_R2;
     }
 
     // Process button combos first (before individual mappings)

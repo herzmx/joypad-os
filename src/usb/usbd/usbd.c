@@ -226,6 +226,23 @@ static uint32_t apply_usbd_profile_player(const input_event_t* event, profile_ou
             if (custom->flags & PROFILE_FLAG_INVERT_RY) {
                 profile_out->right_y = 255 - profile_out->right_y;
             }
+
+            // Apply custom L2/R2 analog→digital thresholds (overrides the
+            // default 128 that profile_apply() set when no built-in profile
+            // was active). A stored value of 0 means "keep the default" —
+            // matches the "uninitialized reserved byte" semantics.
+            if (custom->l2_threshold != 0 && custom->l2_threshold != 128) {
+                profile_out->buttons &= ~JP_BUTTON_L2;
+                if (profile_out->l2_analog >= custom->l2_threshold) {
+                    profile_out->buttons |= JP_BUTTON_L2;
+                }
+            }
+            if (custom->r2_threshold != 0 && custom->r2_threshold != 128) {
+                profile_out->buttons &= ~JP_BUTTON_R2;
+                if (profile_out->r2_analog >= custom->r2_threshold) {
+                    profile_out->buttons |= JP_BUTTON_R2;
+                }
+            }
         }
     }
 
