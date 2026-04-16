@@ -94,6 +94,9 @@ typedef struct {
 bool btstack_classic_get_connection(uint8_t conn_index, btstack_classic_conn_info_t* info);
 uint8_t btstack_classic_get_connection_count(void);
 
+// Get last-connected bonded device (returns false if none stored)
+bool btstack_host_get_last_connected(uint8_t bd_addr_out[6], char name_out[48]);
+
 // Classic BT output (for bthid drivers)
 bool btstack_classic_send_set_report_type(uint8_t conn_index, uint8_t report_type,
                                            uint8_t report_id, const uint8_t* data, uint16_t len);
@@ -118,6 +121,9 @@ void btstack_host_disconnect_all_devices(void);
 // Delete all stored BT bonds (Classic and BLE)
 // Devices will need to re-pair after this
 void btstack_host_delete_all_bonds(void);
+
+// Forget a specific device by address — disconnects if connected, removes bond
+void btstack_host_forget_device(const uint8_t bd_addr[6]);
 
 #ifdef __cplusplus
 }

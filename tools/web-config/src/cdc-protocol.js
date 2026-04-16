@@ -654,6 +654,10 @@ class CDCProtocol {
         return this.sendCommand('BT.BONDS.CLEAR');
     }
 
+    async forgetBtDevice(addr) {
+        return this.sendCommand('BT.FORGET', { addr });
+    }
+
     async getWiimoteOrient() {
         return this.sendCommand('WIIMOTE.ORIENT.GET');
     }

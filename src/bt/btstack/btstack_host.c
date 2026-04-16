@@ -4464,3 +4464,62 @@ void btstack_host_delete_all_bonds(void)
 
     printf("[BTSTACK_HOST] All bonds cleared. Devices will need to re-pair.\n");
 }
+
+bool btstack_host_get_last_connected(uint8_t bd_addr_out[6], char name_out[48])
+{
+    if (!hid_state.has_last_connected) return false;
+    bool nonzero = false;
+    for (int i = 0; i < 6; i++) if (hid_state.last_connected_addr[i]) { nonzero = true; break; }
+    if (!nonzero) return false;
+    memcpy(bd_addr_out, hid_state.last_connected_addr, 6);
+    strncpy(name_out, hid_state.last_connected_name, 47);
+    name_out[47] = '\0';
+    return true;
+}
+
+void btstack_host_forget_device(const uint8_t bd_addr[6])
+{
+    if (!hid_state.initialized) return;
+
+    bd_addr_t addr;
+    memcpy(addr, bd_addr, 6);
+
+    printf("[BTSTACK_HOST] Forgetting device %02X:%02X:%02X:%02X:%02X:%02X\n",
+           addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+
+    // Disconnect if currently connected
+    for (int i = 0; i < MAX_BLE_CONNECTIONS; i++) {
+        if (hid_state.connections[i].handle != HCI_CON_HANDLE_INVALID &&
+            memcmp(hid_state.connections[i].addr, addr, 6) == 0) {
+            gap_disconnect(hid_state.connections[i].handle);
+        }
+    }
+
+    // Remove BLE bond
+    int bond_count = le_device_db_count();
+    for (int i = 0; i < bond_count; i++) {
+        int addr_type;
+        bd_addr_t bond_addr;
+        sm_key_t irk;
+        le_device_db_info(i, &addr_type, bond_addr, irk);
+        if (addr_type < 0) continue;
+        if (memcmp(bond_addr, addr, 6) == 0) {
+            le_device_db_remove(i);
+            printf("[BTSTACK_HOST] Removed BLE bond at index %d\n", i);
+            break;
+        }
+    }
+
+    // Remove Classic link key
+#ifdef ENABLE_CLASSIC
+    gap_drop_link_key_for_bd_addr(addr);
+#endif
+
+    // Clear last-connected if it matches
+    if (hid_state.has_last_connected &&
+        memcmp(hid_state.last_connected_addr, addr, 6) == 0) {
+        memset(hid_state.last_connected_addr, 0, 6);
+        hid_state.has_last_connected = false;
+        btstack_host_save_last_connected();  // Save the cleared state
+    }
+}

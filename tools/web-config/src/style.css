@@ -794,6 +794,38 @@ input[type="text"]:focus { outline: none; border-color: var(--accent); }
    RESPONSIVE
    ================================================================ */
 
+/* BT Host status indicator */
+.bt-status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #555;
+    flex-shrink: 0;
+}
+.bt-status-dot.idle { background: #777; }
+.bt-status-dot.connected { background: #22c55e; }
+.bt-status-dot.scanning {
+    background: #3b82f6;
+    animation: bt-blink 1s ease-in-out infinite;
+}
+@keyframes bt-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+.bt-device-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+.bt-device-name { font-size: 14px; font-weight: 500; }
+.bt-device-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-family: monospace; }
+
 /* Combo button checkboxes (hotkeys page) */
 .combo-buttons {
     display: flex;

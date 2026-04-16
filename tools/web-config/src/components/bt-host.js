@@ -22,8 +22,12 @@ export class BtHostCard {
                     <p class="hint" style="margin-bottom: 12px;">Scans for BT/BLE controllers using onboard radio or USB dongle.</p>
                     <div class="row" id="btStatusRow" style="display:none; margin-bottom: 12px;">
                         <span class="label">Status</span>
-                        <span class="value" id="btStatusText">—</span>
+                        <span class="value" style="display: flex; align-items: center; gap: 8px;">
+                            <span class="bt-status-dot" id="btStatusDot"></span>
+                            <span id="btStatusText">—</span>
+                        </span>
                     </div>
+                    <div id="btDevicesList" style="display:none; margin-bottom: 12px;"></div>
                     <div class="pad-form-row">
                         <span class="label">Wiimote Orientation</span>
                         <select id="wiimoteOrientSelect">
@@ -83,18 +87,61 @@ export class BtHostCard {
             card.style.display = '';
             this.visible = true;
 
-            // Show scanning state
             const statusRow = this.el.querySelector('#btStatusRow');
             const statusText = this.el.querySelector('#btStatusText');
-            if (status.enabled) {
-                statusRow.style.display = '';
-                if (status.scanning) {
-                    statusText.textContent = `Scanning (${status.connections} connected)`;
-                } else if (status.connections > 0) {
-                    statusText.textContent = `${status.connections} connected`;
-                } else {
-                    statusText.textContent = 'Idle';
-                }
+            const statusDot = this.el.querySelector('#btStatusDot');
+            const devicesList = this.el.querySelector('#btDevicesList');
+
+            if (!status.enabled) {
+                statusRow.style.display = 'none';
+                devicesList.style.display = 'none';
+                return;
+            }
+
+            statusRow.style.display = '';
+
+            // Color and label based on state
+            // Dual-role BLE time-slices scan/advertise — show "Scanning" if enabled with no connections
+            statusDot.className = 'bt-status-dot';
+            if (status.connections > 0) {
+                statusDot.classList.add('connected');
+                statusText.textContent = `Connected (${status.connections})`;
+            } else {
+                statusDot.classList.add('scanning');
+                statusText.textContent = 'Scanning';
+            }
+
+            // Render device list
+            const devices = status.devices || [];
+            if (devices.length > 0) {
+                devicesList.style.display = '';
+                devicesList.innerHTML = devices.map(d => {
+                    const meta = d.connected
+                        ? `${d.addr} · ${d.ble ? 'BLE' : 'Classic'}${d.vid ? ' · VID:' + d.vid + ' PID:' + d.pid : ''}`
+                        : `${d.addr} · ${d.ble ? 'BLE' : 'Classic'} · bonded`;
+                    return `
+                        <div class="bt-device-row">
+                            <span class="bt-status-dot ${d.connected ? 'connected' : 'idle'}"></span>
+                            <div style="flex: 1;">
+                                <div class="bt-device-name">${d.name || 'Bonded device'}</div>
+                                <div class="bt-device-meta">${meta}</div>
+                            </div>
+                            <button class="secondary bt-forget-btn" data-addr="${d.addr}" style="padding: 4px 10px; font-size: 12px;">Forget</button>
+                        </div>
+                    `;
+                }).join('');
+
+                // Wire up forget buttons
+                devicesList.querySelectorAll('.bt-forget-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.forgetDevice(btn.dataset.addr));
+                });
+            } else {
+                devicesList.style.display = 'none';
+            }
+
+            // Auto-refresh while page is visible
+            if (!this._statusInterval) {
+                this._statusInterval = setInterval(() => this.loadBtStatus(), 2000);
             }
         } catch (e) {
             card.style.display = 'none';
@@ -128,6 +175,17 @@ export class BtHostCard {
             this.log('Bluetooth bonds cleared', 'success');
         } catch (e) {
             this.log(`Failed to clear bonds: ${e.message}`, 'error');
+        }
+    }
+
+    async forgetDevice(addr) {
+        if (!confirm(`Forget device ${addr}? It will be disconnected and bond removed.`)) return;
+        try {
+            await this.protocol.forgetBtDevice(addr);
+            this.log(`Forgot device ${addr}`, 'success');
+            await this.loadBtStatus();
+        } catch (e) {
+            this.log(`Failed to forget device: ${e.message}`, 'error');
         }
     }
 

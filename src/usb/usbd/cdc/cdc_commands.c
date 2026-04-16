@@ -1108,11 +1108,56 @@ static void cmd_settings_reset(const char* json)
 static void cmd_bt_status(const char* json)
 {
     (void)json;
-    snprintf(response_buf, sizeof(response_buf),
-             "{\"enabled\":%s,\"scanning\":%s,\"connections\":%d}",
+    int pos = snprintf(response_buf, sizeof(response_buf),
+             "{\"enabled\":%s,\"scanning\":%s,\"connections\":%d,\"devices\":[",
              btstack_host_is_initialized() ? "true" : "false",
              btstack_host_is_scanning() ? "true" : "false",
              btstack_classic_get_connection_count());
+
+    // Track which bonded addresses are currently connected
+    uint8_t connected_addrs[8][6];
+    int connected_count = 0;
+
+    // Active connections first
+    btstack_classic_conn_info_t info;
+    bool first = true;
+    for (uint8_t i = 0; i < 8; i++) {
+        if (!btstack_classic_get_connection(i, &info)) continue;
+        if (!info.active) continue;
+        memcpy(connected_addrs[connected_count++], info.bd_addr, 6);
+        pos += snprintf(response_buf + pos, sizeof(response_buf) - pos,
+                "%s{\"name\":\"%.31s\",\"addr\":\"%02X:%02X:%02X:%02X:%02X:%02X\","
+                "\"vid\":\"%04X\",\"pid\":\"%04X\",\"ble\":%s,\"connected\":true}",
+                first ? "" : ",", info.name,
+                info.bd_addr[0], info.bd_addr[1], info.bd_addr[2],
+                info.bd_addr[3], info.bd_addr[4], info.bd_addr[5],
+                info.vendor_id, info.product_id,
+                info.is_ble ? "true" : "false");
+        first = false;
+    }
+
+    // Last-connected bonded device (if not currently connected)
+    {
+        uint8_t bond_addr[6];
+        char bond_name[48];
+        if (btstack_host_get_last_connected(bond_addr, bond_name)) {
+            bool already_shown = false;
+            for (int j = 0; j < connected_count; j++) {
+                if (memcmp(bond_addr, connected_addrs[j], 6) == 0) { already_shown = true; break; }
+            }
+            if (!already_shown) {
+                pos += snprintf(response_buf + pos, sizeof(response_buf) - pos,
+                        "%s{\"name\":\"%.31s\",\"addr\":\"%02X:%02X:%02X:%02X:%02X:%02X\","
+                        "\"vid\":\"\",\"pid\":\"\",\"ble\":true,\"connected\":false}",
+                        first ? "" : ",", bond_name,
+                        bond_addr[0], bond_addr[1], bond_addr[2],
+                        bond_addr[3], bond_addr[4], bond_addr[5]);
+                first = false;
+            }
+        }
+    }
+
+    snprintf(response_buf + pos, sizeof(response_buf) - pos, "]}");
     send_json(response_buf);
 }
 
@@ -1120,6 +1165,30 @@ static void cmd_bt_bonds_clear(const char* json)
 {
     (void)json;
     btstack_host_delete_all_bonds();
+    send_ok();
+}
+
+static void cmd_bt_forget(const char* json)
+{
+    int len;
+    const char* addr_str = json_get_string(json, "addr", &len);
+    if (!addr_str || len < 17) {
+        send_error("Missing or invalid addr");
+        return;
+    }
+
+    // Parse "AA:BB:CC:DD:EE:FF" → bytes
+    uint8_t addr[6] = {0};
+    for (int i = 0; i < 6; i++) {
+        unsigned int b;
+        if (sscanf(addr_str + i * 3, "%2x", &b) != 1) {
+            send_error("Invalid addr format");
+            return;
+        }
+        addr[i] = (uint8_t)b;
+    }
+
+    btstack_host_forget_device(addr);
     send_ok();
 }
 
@@ -1874,6 +1943,7 @@ static const cmd_entry_t commands[] = {
 #ifdef ENABLE_BTSTACK
     {"BT.STATUS", cmd_bt_status},
     {"BT.BONDS.CLEAR", cmd_bt_bonds_clear},
+    {"BT.FORGET", cmd_bt_forget},
     {"WIIMOTE.ORIENT.GET", cmd_wiimote_orient_get},
     {"WIIMOTE.ORIENT.SET", cmd_wiimote_orient_set},
 #endif

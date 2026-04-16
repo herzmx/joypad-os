@@ -139,11 +139,8 @@ static const uint32_t SEQ_BUTTON_MAP[16] = {
 
 static uint8_t scale_analog(uint16_t value, uint32_t max_value)
 {
-    int mid = max_value / 2;
-    if (value <= (uint16_t)mid) {
-        return 1 + (value * 127) / mid;
-    }
-    return 128 + ((value - mid) * 127) / (max_value - mid);
+    if (max_value == 0) return 128;
+    return (uint8_t)((uint32_t)value * 255 / max_value);
 }
 
 // ============================================================================
