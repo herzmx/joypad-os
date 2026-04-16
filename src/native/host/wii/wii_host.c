@@ -92,6 +92,150 @@ static void map_nunchuck(const wii_ext_state_t *s, input_event_t *ev) {
     }
 }
 
+// Guitar (GH3 + GHWT): frets on face buttons, strum on d-pad, whammy on RT.
+static void map_guitar(const wii_ext_state_t *s, input_event_t *ev) {
+    if (s->buttons & WII_BTN_GH_GREEN)      ev->buttons |= JP_BUTTON_B1;
+    if (s->buttons & WII_BTN_GH_RED)        ev->buttons |= JP_BUTTON_B2;
+    if (s->buttons & WII_BTN_GH_YELLOW)     ev->buttons |= JP_BUTTON_B3;
+    if (s->buttons & WII_BTN_GH_BLUE)       ev->buttons |= JP_BUTTON_B4;
+    if (s->buttons & WII_BTN_GH_ORANGE)     ev->buttons |= JP_BUTTON_L1;
+    if (s->buttons & WII_BTN_GH_STRUM_UP)   ev->buttons |= JP_BUTTON_DU;
+    if (s->buttons & WII_BTN_GH_STRUM_DOWN) ev->buttons |= JP_BUTTON_DD;
+    if (s->buttons & WII_BTN_MINUS)         ev->buttons |= JP_BUTTON_S1;
+    if (s->buttons & WII_BTN_PLUS)          ev->buttons |= JP_BUTTON_S2;
+
+    ev->analog[ANALOG_LX] = (uint8_t)(s->analog[WII_AXIS_LX] >> 2);
+    ev->analog[ANALOG_LY] = (uint8_t)(255 - (s->analog[WII_AXIS_LY] >> 2));
+    ev->analog[ANALOG_RX] = 128;
+    ev->analog[ANALOG_RY] = 128;
+    ev->analog[ANALOG_L2] = 0;
+    ev->analog[ANALOG_R2] = (uint8_t)(s->analog[WII_AXIS_RT] >> 2);  // whammy
+
+    ev->layout = LAYOUT_WII_GUITAR;
+    ev->button_count = 5;
+}
+
+// Drums: pads on face/shoulder buttons, velocity in event->pressure[].
+static void map_drums(const wii_ext_state_t *s, input_event_t *ev) {
+    if (s->buttons & WII_BTN_DRUM_RED)    ev->buttons |= JP_BUTTON_B1;
+    if (s->buttons & WII_BTN_DRUM_YELLOW) ev->buttons |= JP_BUTTON_B3;
+    if (s->buttons & WII_BTN_DRUM_BLUE)   ev->buttons |= JP_BUTTON_B4;
+    if (s->buttons & WII_BTN_DRUM_GREEN)  ev->buttons |= JP_BUTTON_B2;
+    if (s->buttons & WII_BTN_DRUM_ORANGE) ev->buttons |= JP_BUTTON_L1;
+    if (s->buttons & WII_BTN_DRUM_BASS)   ev->buttons |= JP_BUTTON_R1;
+    if (s->buttons & WII_BTN_MINUS)       ev->buttons |= JP_BUTTON_S1;
+    if (s->buttons & WII_BTN_PLUS)        ev->buttons |= JP_BUTTON_S2;
+
+    // Velocity → pressure[] — same slot layout as DualShock 3.
+    // DS3 order: up, right, down, left, l2, r2, l1, r1, triangle, circle, cross, square
+    // We map drum pads onto that approximate order via the face/shoulder
+    // indices — PS3 mode consumers see pressure per-button.
+    ev->pressure[10] = s->pad_velocity[WII_DRUM_PAD_RED];    // cross
+    ev->pressure[8]  = s->pad_velocity[WII_DRUM_PAD_YELLOW]; // triangle
+    ev->pressure[9]  = s->pad_velocity[WII_DRUM_PAD_BLUE];   // circle
+    ev->pressure[11] = s->pad_velocity[WII_DRUM_PAD_GREEN];  // square
+    ev->pressure[6]  = s->pad_velocity[WII_DRUM_PAD_ORANGE]; // l1 (cymbal)
+    ev->pressure[7]  = s->pad_velocity[WII_DRUM_PAD_BASS];   // r1
+    ev->has_pressure = true;
+
+    ev->analog[ANALOG_LX] = 128;
+    ev->analog[ANALOG_LY] = 128;
+    ev->analog[ANALOG_RX] = 128;
+    ev->analog[ANALOG_RY] = 128;
+    ev->analog[ANALOG_L2] = 0;
+    ev->analog[ANALOG_R2] = 0;
+
+    ev->layout = LAYOUT_WII_DRUMS;
+    ev->button_count = 6;
+}
+
+// DJ Hero turntable: rotations on sticks, crossfader on L2, effects on R2.
+static void map_turntable(const wii_ext_state_t *s, input_event_t *ev) {
+    if (s->buttons & WII_BTN_DJ_LEFT_GREEN)  ev->buttons |= JP_BUTTON_B1;
+    if (s->buttons & WII_BTN_DJ_LEFT_RED)    ev->buttons |= JP_BUTTON_B2;
+    if (s->buttons & WII_BTN_DJ_LEFT_BLUE)   ev->buttons |= JP_BUTTON_B3;
+    if (s->buttons & WII_BTN_DJ_RIGHT_GREEN) ev->buttons |= JP_BUTTON_B4;
+    if (s->buttons & WII_BTN_DJ_RIGHT_RED)   ev->buttons |= JP_BUTTON_L1;
+    if (s->buttons & WII_BTN_DJ_RIGHT_BLUE)  ev->buttons |= JP_BUTTON_R1;
+    if (s->buttons & WII_BTN_DJ_EUPHORIA)    ev->buttons |= JP_BUTTON_A1;
+    if (s->buttons & WII_BTN_MINUS)          ev->buttons |= JP_BUTTON_S1;
+    if (s->buttons & WII_BTN_PLUS)           ev->buttons |= JP_BUTTON_S2;
+
+    ev->analog[ANALOG_LX] = (uint8_t)(s->analog[WII_AXIS_LX] >> 2);
+    ev->analog[ANALOG_LY] = 128;
+    ev->analog[ANALOG_RX] = (uint8_t)(s->analog[WII_AXIS_RX] >> 2);
+    ev->analog[ANALOG_RY] = 128;
+    ev->analog[ANALOG_L2] = (uint8_t)(s->analog[WII_AXIS_LT] >> 2);  // crossfader
+    ev->analog[ANALOG_R2] = (uint8_t)(s->analog[WII_AXIS_RT] >> 2);  // effects dial
+
+    ev->layout = LAYOUT_WII_TURNTABLE;
+    ev->button_count = 6;
+}
+
+// Taiko: drum surfaces on face buttons.
+static void map_taiko(const wii_ext_state_t *s, input_event_t *ev) {
+    if (s->buttons & WII_BTN_TAIKO_L_FACE) ev->buttons |= JP_BUTTON_B1;
+    if (s->buttons & WII_BTN_TAIKO_R_FACE) ev->buttons |= JP_BUTTON_B2;
+    if (s->buttons & WII_BTN_TAIKO_L_RIM)  ev->buttons |= JP_BUTTON_B3;
+    if (s->buttons & WII_BTN_TAIKO_R_RIM)  ev->buttons |= JP_BUTTON_B4;
+    if (s->buttons & WII_BTN_MINUS)        ev->buttons |= JP_BUTTON_S1;
+    if (s->buttons & WII_BTN_PLUS)         ev->buttons |= JP_BUTTON_S2;
+
+    ev->analog[ANALOG_LX] = 128;
+    ev->analog[ANALOG_LY] = 128;
+    ev->analog[ANALOG_RX] = 128;
+    ev->analog[ANALOG_RY] = 128;
+    ev->analog[ANALOG_L2] = 0;
+    ev->analog[ANALOG_R2] = 0;
+
+    ev->layout = LAYOUT_WII_TAIKO;
+    ev->button_count = 4;
+}
+
+// uDraw tablet: absolute tablet position surfaces via touch[0].
+static void map_udraw(const wii_ext_state_t *s, input_event_t *ev) {
+    if (s->buttons & WII_BTN_A) ev->buttons |= JP_BUTTON_B1;
+    if (s->buttons & WII_BTN_B) ev->buttons |= JP_BUTTON_B2;
+    if (s->buttons & WII_BTN_MINUS) ev->buttons |= JP_BUTTON_S1;
+    if (s->buttons & WII_BTN_PLUS)  ev->buttons |= JP_BUTTON_S2;
+
+    ev->analog[ANALOG_LX] = (uint8_t)(s->analog[WII_AXIS_LX] >> 2);
+    ev->analog[ANALOG_LY] = (uint8_t)(s->analog[WII_AXIS_LY] >> 2);
+    ev->analog[ANALOG_RX] = 128;
+    ev->analog[ANALOG_RY] = 128;
+    ev->analog[ANALOG_L2] = (uint8_t)(s->analog[WII_AXIS_LT] >> 2);
+    ev->analog[ANALOG_R2] = 0;
+
+    ev->touch[0].x = s->tablet_x;
+    ev->touch[0].y = s->tablet_y;
+    ev->touch[0].active = s->tablet_active;
+    ev->has_touch = s->tablet_active;
+
+    ev->layout = LAYOUT_WII_UDRAW;
+    ev->button_count = 2;
+}
+
+// MotionPlus standalone: no buttons / analogs, just gyro passthrough.
+static void map_motionplus(const wii_ext_state_t *s, input_event_t *ev) {
+    ev->analog[ANALOG_LX] = 128;
+    ev->analog[ANALOG_LY] = 128;
+    ev->analog[ANALOG_RX] = 128;
+    ev->analog[ANALOG_RY] = 128;
+    ev->analog[ANALOG_L2] = 0;
+    ev->analog[ANALOG_R2] = 0;
+
+    if (s->has_gyro) {
+        ev->gyro[0] = s->gyro[0];
+        ev->gyro[1] = s->gyro[1];
+        ev->gyro[2] = s->gyro[2];
+        ev->has_motion = true;
+        ev->gyro_range = 2000;  // normalized-to-fast-mode range
+    }
+
+    ev->layout = LAYOUT_WII_MOTIONPLUS;
+    ev->button_count = 0;
+}
+
 static void map_classic(const wii_ext_state_t *s, input_event_t *ev) {
     // Wii Classic face layout, W3C positions (B1=south, B2=east, B3=west, B4=north):
     //       X        --> B4 (north)
@@ -268,15 +412,16 @@ void wii_host_task(void) {
     ev.transport = INPUT_TRANSPORT_NATIVE;
 
     switch (state.type) {
-        case WII_EXT_TYPE_NUNCHUCK:
-            map_nunchuck(&state, &ev);
-            break;
+        case WII_EXT_TYPE_NUNCHUCK:    map_nunchuck(&state, &ev);   break;
         case WII_EXT_TYPE_CLASSIC:
-        case WII_EXT_TYPE_CLASSIC_PRO:
-            map_classic(&state, &ev);
-            break;
-        default:
-            return;
+        case WII_EXT_TYPE_CLASSIC_PRO: map_classic(&state, &ev);    break;
+        case WII_EXT_TYPE_GUITAR:      map_guitar(&state, &ev);     break;
+        case WII_EXT_TYPE_DRUMS:       map_drums(&state, &ev);      break;
+        case WII_EXT_TYPE_TURNTABLE:   map_turntable(&state, &ev);  break;
+        case WII_EXT_TYPE_TAIKO:       map_taiko(&state, &ev);      break;
+        case WII_EXT_TYPE_UDRAW:       map_udraw(&state, &ev);      break;
+        case WII_EXT_TYPE_MOTIONPLUS:  map_motionplus(&state, &ev); break;
+        default: return;
     }
 
     uint64_t analog_sig =

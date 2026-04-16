@@ -89,13 +89,38 @@ static wii_ext_type_t classify(const uint8_t id[6]) {
         case 0x00:
             return WII_EXT_TYPE_NUNCHUCK;
         case 0x01:
-            // Some Classic Pro units report id[0]=0x01; OEM Classic reports
-            // 0x00. This is unreliable in the wild (many third-party units
-            // lie), but we try it as a hint.
+            // Classic Pro units often report id[0]=0x01; OEM Classic = 0x00.
+            // Unreliable in the wild, but useful as a hint.
             return (id[0] == 0x01) ? WII_EXT_TYPE_CLASSIC_PRO
                                    : WII_EXT_TYPE_CLASSIC;
+        case 0x03:
+            // Guitar / Drums / Turntable family — disambiguate on id[0].
+            //   0x00 = GH3 Guitar
+            //   0x01 = GHWT Guitar **or Drums** (identical ID bytes — this
+            //          is a known, unresolved collision; both genuine and
+            //          third-party devices report the same id[0]=0x01).
+            //          We default to Guitar. Distinguishing at runtime
+            //          would require sniffing report structure: drums
+            //          emit the "pad-id + velocity" bit pattern in byte 2
+            //          that a guitar never produces. If hardware testing
+            //          shows this mis-classifies real drum kits, add a
+            //          post-init report-pattern check to flip to
+            //          WII_EXT_TYPE_DRUMS on first poll.
+            //   0x03 = DJ Hero turntable
+            switch (id[0]) {
+                case 0x00: return WII_EXT_TYPE_GUITAR;
+                case 0x01: return WII_EXT_TYPE_GUITAR;  // GHWT OR Drums — ambiguous
+                case 0x03: return WII_EXT_TYPE_TURNTABLE;
+                default:   return WII_EXT_TYPE_GUITAR;
+            }
+        case 0x05:
+            return WII_EXT_TYPE_MOTIONPLUS;
+        case 0x11:
+            return WII_EXT_TYPE_TAIKO;
+        case 0x12:
+        case 0x13:
+            return WII_EXT_TYPE_UDRAW;
         default:
-            // Future: 0x03=guitar family, 0x05=MotionPlus, 0x11=taiko, 0x12=udraw
             return WII_EXT_TYPE_NONE;
     }
 }
@@ -204,6 +229,24 @@ bool wii_ext_poll(wii_ext_t *ext, wii_ext_state_t *out) {
         case WII_EXT_TYPE_CLASSIC:
         case WII_EXT_TYPE_CLASSIC_PRO:
             wii_ext_parse_classic(ext, report, out);
+            break;
+        case WII_EXT_TYPE_GUITAR:
+            wii_ext_parse_guitar(ext, report, out);
+            break;
+        case WII_EXT_TYPE_DRUMS:
+            wii_ext_parse_drums(ext, report, out);
+            break;
+        case WII_EXT_TYPE_TURNTABLE:
+            wii_ext_parse_turntable(ext, report, out);
+            break;
+        case WII_EXT_TYPE_TAIKO:
+            wii_ext_parse_taiko(ext, report, out);
+            break;
+        case WII_EXT_TYPE_UDRAW:
+            wii_ext_parse_udraw(ext, report, out);
+            break;
+        case WII_EXT_TYPE_MOTIONPLUS:
+            wii_ext_parse_mplus(ext, report, out);
             break;
         default:
             out->connected = false;

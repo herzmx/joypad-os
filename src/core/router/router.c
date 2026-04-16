@@ -145,6 +145,12 @@ static const char* get_device_name(const input_event_t* event) {
                 case LAYOUT_WII_NUNCHUCK:     return "Wii Nunchuck";
                 case LAYOUT_WII_CLASSIC:      return "Wii Classic";
                 case LAYOUT_WII_CLASSIC_PRO:  return "Wii Classic Pro";
+                case LAYOUT_WII_GUITAR:       return "Wii Guitar";
+                case LAYOUT_WII_DRUMS:        return "Wii Drums";
+                case LAYOUT_WII_TURNTABLE:    return "DJ Hero Turntable";
+                case LAYOUT_WII_TAIKO:        return "Taiko Drum";
+                case LAYOUT_WII_UDRAW:        return "uDraw Tablet";
+                case LAYOUT_WII_MOTIONPLUS:   return "MotionPlus";
                 default:                      return "Native";
             }
 #ifdef I2C_PEER_ENABLED

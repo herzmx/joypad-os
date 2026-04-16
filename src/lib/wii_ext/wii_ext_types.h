@@ -14,7 +14,12 @@ typedef enum {
     WII_EXT_TYPE_NUNCHUCK,
     WII_EXT_TYPE_CLASSIC,
     WII_EXT_TYPE_CLASSIC_PRO,
-    // Future: GUITAR, DRUMS, TURNTABLE, TAIKO, UDRAW, MOTIONPLUS
+    WII_EXT_TYPE_GUITAR,         // GH3 + GHWT (same dispatch, touch-bar parsed when present)
+    WII_EXT_TYPE_DRUMS,          // Rock Band / Guitar Hero drums
+    WII_EXT_TYPE_TURNTABLE,      // DJ Hero turntable
+    WII_EXT_TYPE_TAIKO,          // Taiko no Tatsujin TaTaCon drum
+    WII_EXT_TYPE_UDRAW,          // THQ uDraw tablet
+    WII_EXT_TYPE_MOTIONPLUS,     // MotionPlus standalone or passthrough
 } wii_ext_type_t;
 
 // Button bitmask. Superset covering all accessories; unused bits per
@@ -37,6 +42,34 @@ typedef enum {
     WII_BTN_DR      = 1u << 14,
     WII_BTN_C       = 1u << 15,  // Nunchuck
     WII_BTN_Z       = 1u << 16,  // Nunchuck
+    // Guitar (GH3 / GHWT): fret buttons + strum + whammy surface via analog.
+    WII_BTN_GH_GREEN  = 1u << 17,
+    WII_BTN_GH_RED    = 1u << 18,
+    WII_BTN_GH_YELLOW = 1u << 19,
+    WII_BTN_GH_BLUE   = 1u << 20,
+    WII_BTN_GH_ORANGE = 1u << 21,
+    WII_BTN_GH_STRUM_UP   = 1u << 22,
+    WII_BTN_GH_STRUM_DOWN = 1u << 23,
+    // Drums: pad hits (velocity also in state->pad_velocity[]).
+    WII_BTN_DRUM_RED    = 1u << 17,
+    WII_BTN_DRUM_YELLOW = 1u << 18,
+    WII_BTN_DRUM_BLUE   = 1u << 19,
+    WII_BTN_DRUM_GREEN  = 1u << 20,
+    WII_BTN_DRUM_ORANGE = 1u << 21,
+    WII_BTN_DRUM_BASS   = 1u << 22,
+    // DJ Hero turntable face buttons.
+    WII_BTN_DJ_LEFT_GREEN  = 1u << 17,
+    WII_BTN_DJ_LEFT_RED    = 1u << 18,
+    WII_BTN_DJ_LEFT_BLUE   = 1u << 19,
+    WII_BTN_DJ_RIGHT_GREEN = 1u << 20,
+    WII_BTN_DJ_RIGHT_RED   = 1u << 21,
+    WII_BTN_DJ_RIGHT_BLUE  = 1u << 22,
+    WII_BTN_DJ_EUPHORIA    = 1u << 23,
+    // Taiko drum surfaces.
+    WII_BTN_TAIKO_L_FACE = 1u << 17,
+    WII_BTN_TAIKO_R_FACE = 1u << 18,
+    WII_BTN_TAIKO_L_RIM  = 1u << 19,
+    WII_BTN_TAIKO_R_RIM  = 1u << 20,
 } wii_button_t;
 
 // Analog axes. Values are normalized to 0..1023 (10-bit) with neutral at 512.
@@ -57,11 +90,32 @@ typedef struct {
     bool     connected;
     uint32_t buttons;
     uint16_t analog[WII_AXIS_COUNT];
-    // Nunchuck accelerometer (raw 10-bit centered around calibrated 0g, or
-    // around 0x200 if calibration invalid). Valid iff has_accel.
+    // Nunchuck accelerometer and MotionPlus gyro (raw, centered at 0).
     int16_t  accel[3];
+    int16_t  gyro[3];
     bool     has_accel;
+    bool     has_gyro;
+    // Drums: 4-bit velocity per pad, indexed by WII_DRUM_PAD_*. Only the
+    // pad reported in the current poll has a non-zero value; zero means
+    // "not hit this poll". Most rhythm games only need the button press
+    // (in `buttons`) — velocity is surfaced for games that want it.
+    uint8_t  pad_velocity[6];
+    // uDraw tablet position (absolute 12-bit / 10-bit) and pen pressure.
+    uint16_t tablet_x;
+    uint16_t tablet_y;
+    uint8_t  tablet_pressure;
+    bool     tablet_active;
 } wii_ext_state_t;
+
+// Drum pad indices for `pad_velocity[]`.
+enum {
+    WII_DRUM_PAD_RED    = 0,
+    WII_DRUM_PAD_YELLOW = 1,
+    WII_DRUM_PAD_BLUE   = 2,
+    WII_DRUM_PAD_GREEN  = 3,
+    WII_DRUM_PAD_ORANGE = 4,
+    WII_DRUM_PAD_BASS   = 5,
+};
 
 // Transport vtable. All members must be non-NULL. The protocol library is
 // pure C and has no knowledge of the underlying I2C implementation.

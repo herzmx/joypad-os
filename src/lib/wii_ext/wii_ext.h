@@ -55,7 +55,13 @@ static inline wii_ext_type_t wii_ext_type(const wii_ext_t *ext) {
 
 // Per-accessory parsers. Declared here so wii_ext.c can dispatch without
 // including each header.
-void wii_ext_parse_nunchuck(wii_ext_t *ext, const uint8_t *report, wii_ext_state_t *out);
-void wii_ext_parse_classic (wii_ext_t *ext, const uint8_t *report, wii_ext_state_t *out);
+void wii_ext_parse_nunchuck (wii_ext_t *ext, const uint8_t *report, wii_ext_state_t *out);
+void wii_ext_parse_classic  (wii_ext_t *ext, const uint8_t *report, wii_ext_state_t *out);
+void wii_ext_parse_guitar   (wii_ext_t *ext, const uint8_t *report, wii_ext_state_t *out);
+void wii_ext_parse_drums    (wii_ext_t *ext, const uint8_t *report, wii_ext_state_t *out);
+void wii_ext_parse_turntable(wii_ext_t *ext, const uint8_t *report, wii_ext_state_t *out);
+void wii_ext_parse_taiko    (wii_ext_t *ext, const uint8_t *report, wii_ext_state_t *out);
+void wii_ext_parse_udraw    (wii_ext_t *ext, const uint8_t *report, wii_ext_state_t *out);
+void wii_ext_parse_mplus    (wii_ext_t *ext, const uint8_t *report, wii_ext_state_t *out);
 
 #endif // WII_EXT_H

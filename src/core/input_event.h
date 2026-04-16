@@ -68,6 +68,12 @@ typedef enum {
     LAYOUT_WII_NUNCHUCK,        // Wii Nunchuck: C/Z + stick + accel
     LAYOUT_WII_CLASSIC,         // Wii Classic: SNES-like faces + 2 sticks + analog L/R
     LAYOUT_WII_CLASSIC_PRO,     // Wii Classic Pro: same as Classic but digital L/R only
+    LAYOUT_WII_GUITAR,          // Guitar Hero 3 / World Tour guitar
+    LAYOUT_WII_DRUMS,           // Rock Band / Guitar Hero drums
+    LAYOUT_WII_TURNTABLE,       // DJ Hero turntable
+    LAYOUT_WII_TAIKO,           // Taiko no Tatsujin TaTaCon
+    LAYOUT_WII_UDRAW,           // THQ uDraw tablet
+    LAYOUT_WII_MOTIONPLUS,      // MotionPlus standalone (gyro only)
 } controller_layout_t;
 
 // ============================================================================

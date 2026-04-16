@@ -276,6 +276,12 @@ set(WII_HOST_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/wii_ext/wii_ext.c
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/wii_ext/ext_nunchuck.c
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/wii_ext/ext_classic.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/wii_ext/ext_guitar.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/wii_ext/ext_drums.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/wii_ext/ext_turntable.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/wii_ext/ext_taiko.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/wii_ext/ext_udraw.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/wii_ext/ext_motionplus.c
 )
 
 # Nuon host sources (polyface master)

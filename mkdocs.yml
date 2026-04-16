@@ -50,6 +50,7 @@ nav:
     - LodgeNet: input/lodgenet.md
     - NES: input/nes.md
     - Neo Geo: input/neogeo.md
+    - Wii Extension: input/wii.md
     - GPIO: input/gpio.md
     - UART: input/uart.md
   - Output Interfaces:
@@ -99,6 +100,10 @@ nav:
       - nes2usb: apps/nes2usb.md
       - neogeo2usb: apps/neogeo2usb.md
       - lodgenet2usb: apps/lodgenet2usb.md
+      - wii2usb: apps/wii2usb.md
+    - Wii Adapters:
+      - wii2gc (GameCube): apps/wii2gc.md
+      - wii2n64 (N64): apps/wii2n64.md
     - Cross-Console Bridges:
       - n642dc: apps/n642dc.md
       - snes23do: apps/snes23do.md
