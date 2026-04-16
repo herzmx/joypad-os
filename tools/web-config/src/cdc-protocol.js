@@ -691,6 +691,10 @@ class CDCProtocol {
         return this.sendCommand('ROUTER.SET', config);
     }
 
+    async setDpadMode(mode) {
+        return this.sendCommand('ROUTER.DPAD.SET', { mode });
+    }
+
     // Pad GPIO Config
     async getPadConfig() {
         return this.sendCommand('PAD.CONFIG.GET');

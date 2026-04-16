@@ -1,3 +1,5 @@
+import { DirtyTracker } from './dirty-tracker.js';
+
 /** Router Page — Input routing and D-Pad mode configuration */
 export class RouterCard {
     constructor(container, protocol, log) {
@@ -27,18 +29,25 @@ export class RouterCard {
                             <option value="2">Latest</option>
                         </select>
                     </div>
-                    <div class="pad-form-row">
-                        <span class="label">D-Pad Mode</span>
+                    <div class="buttons" style="margin-top: 12px;">
+                        <button id="routerSaveBtn">Save &amp; Reboot</button>
+                    </div>
+                    <p class="hint" style="margin-top: 8px;">Device will reboot to apply changes.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>D-Pad Mode</h2>
+                <div class="card-content">
+                    <div class="row">
+                        <span class="label">Mode</span>
                         <select id="dpadMode">
                             <option value="0">D-Pad</option>
                             <option value="1">Left Stick</option>
                             <option value="2">Right Stick</option>
                         </select>
                     </div>
-                    <div class="buttons" style="margin-top: 12px;">
-                        <button id="routerSaveBtn">Save &amp; Reboot</button>
-                    </div>
-                    <p class="hint" style="margin-top: 8px;">Device will reboot to apply changes.</p>
+                    <p class="hint">Maps d-pad buttons to analog stick. Applies to all input sources.</p>
                 </div>
             </div>`;
 
@@ -46,6 +55,13 @@ export class RouterCard {
             this.el.querySelector('#mergeModeRow').style.display = e.target.value === '1' ? '' : 'none';
         });
         this.el.querySelector('#routerSaveBtn').addEventListener('click', () => this.save());
+        this.el.querySelector('#dpadMode').addEventListener('change', (e) => this.setDpadMode(e.target.value));
+
+        // Dirty tracking — only the routing/merge mode card needs save+reboot
+        this.dirty = new DirtyTracker(
+            this.el.querySelector('.card'),  // first card (Router)
+            this.el.querySelector('#routerSaveBtn')
+        );
     }
 
     async load() {
@@ -56,6 +72,7 @@ export class RouterCard {
             this.el.querySelector('#dpadMode').value = config.dpad_mode || 0;
             this.el.querySelector('#mergeModeRow').style.display =
                 (config.routing_mode || 0) === 1 ? '' : 'none';
+            this.dirty?.snapshot();
         } catch (e) {
             this.log(`Failed to load router config: ${e.message}`, 'error');
         }
@@ -76,6 +93,16 @@ export class RouterCard {
             this.log(result.reboot ? 'Config saved. Device rebooting...' : 'Config saved.', 'success');
         } catch (e) {
             this.log(`Failed to save router config: ${e.message}`, 'error');
+        }
+    }
+
+    async setDpadMode(mode) {
+        try {
+            await this.protocol.setDpadMode(parseInt(mode));
+            const names = ['D-Pad', 'Left Stick', 'Right Stick'];
+            this.log(`D-Pad mode: ${names[parseInt(mode)]}`, 'success');
+        } catch (e) {
+            this.log(`Failed to set D-Pad mode: ${e.message}`, 'error');
         }
     }
 }

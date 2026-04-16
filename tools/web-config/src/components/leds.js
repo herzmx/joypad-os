@@ -1,3 +1,5 @@
+import { DirtyTracker } from './dirty-tracker.js';
+
 /** Feedback Page — LED, Audio, and Rumble configuration */
 export class FeedbackCard {
     constructor(container, protocol, log) {
@@ -67,6 +69,7 @@ export class FeedbackCard {
             this.el.querySelector('#speakerSettings').style.display = e.target.checked ? '' : 'none';
         });
         this.el.querySelector('#feedbackSaveBtn').addEventListener('click', () => this.save());
+        this.dirty = new DirtyTracker(this.el, this.el.querySelector('#feedbackSaveBtn'));
     }
 
     async load() {
@@ -126,6 +129,7 @@ export class FeedbackCard {
                 this.el.querySelector('#speakerPin').value = spkPin;
             }
             this.el.querySelector('#speakerEnablePin').value = config.speaker_enable_pin !== undefined ? config.speaker_enable_pin : -1;
+            this.dirty?.snapshot();
         } catch (e) {
             card.style.display = 'none';
             this.visible = false;

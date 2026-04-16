@@ -1,3 +1,5 @@
+import { DirtyTracker } from './dirty-tracker.js';
+
 /** Bluetooth Host (Input) — scan, status, bonds, Wiimote orientation */
 export class BtHostCard {
     constructor(container, protocol, log) {
@@ -17,7 +19,7 @@ export class BtHostCard {
                             <input type="checkbox" id="btInputEnable">
                             <span class="toggle-slider"></span>
                         </label>
-                        <span>Enable Onboard Bluetooth Host</span>
+                        <span>Enable Bluetooth Host</span>
                     </div>
                     <p class="hint">Use onboard BT radio to scan for controllers. USB BT dongles work independently when plugged in.</p>
                     <div class="buttons" style="margin-top: 12px;">
@@ -70,6 +72,7 @@ export class BtHostCard {
             </div>`;
 
         this.el.querySelector('#btHostSaveBtn').addEventListener('click', () => this.saveBtHost());
+        this.dirty = new DirtyTracker(this.el.querySelector('#btHostCard'), this.el.querySelector('#btHostSaveBtn'));
         this.el.querySelector('#wiimoteOrientSelect').addEventListener('change', (e) => this.setWiimoteOrient(e.target.value));
         this.el.querySelector('#clearBtBtn').addEventListener('click', () => this.clearBtBonds());
     }
@@ -107,6 +110,7 @@ export class BtHostCard {
                     this.el.querySelector('#btInputEnable').checked = router.bt_input || false;
                 } catch (e) {}
                 this._toggleLoaded = true;
+                this.dirty?.snapshot();
             }
 
             // Scanning card only shown when BT is active

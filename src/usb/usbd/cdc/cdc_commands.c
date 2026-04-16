@@ -1060,6 +1060,25 @@ static void cmd_router_get(const char* json)
     send_json(response_buf);
 }
 
+static void cmd_router_dpad_set(const char* json)
+{
+    int mode;
+    if (!json_get_int(json, "mode", &mode) || mode < 0 || mode > 2) {
+        send_error("Invalid mode (0-2)");
+        return;
+    }
+    router_set_dpad_mode((uint8_t)mode);
+
+    // Persist to flash (no reboot needed)
+    flash_t flash_data;
+    if (!flash_load(&flash_data)) memset(&flash_data, 0, sizeof(flash_data));
+    flash_data.dpad_mode = (uint8_t)mode;
+    flash_data.router_saved = 1;
+    flash_save(&flash_data);
+
+    send_ok();
+}
+
 static void cmd_router_set(const char* json)
 {
     flash_t flash_data;
@@ -1946,6 +1965,7 @@ static const cmd_entry_t commands[] = {
     {"SETTINGS.RESET", cmd_settings_reset},
     {"ROUTER.GET", cmd_router_get},
     {"ROUTER.SET", cmd_router_set},
+    {"ROUTER.DPAD.SET", cmd_router_dpad_set},
     // Player management
     {"PLAYERS.LIST", cmd_players_list},
     // Rumble testing

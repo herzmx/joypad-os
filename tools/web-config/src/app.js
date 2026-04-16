@@ -20,10 +20,14 @@ import { AdvancedCard } from './components/advanced.js';
 // Page registry: maps page IDs to sidebar groups
 const PAGE_GROUPS = {
     'device-info': 'core',
+    'router':      'core',
     'profiles':    'core',
+    'hotkeys':     'core',
     'usb':         'output',
     'bluetooth':   'output',
     'leds':        'output',
+    'feedback':    'output',
+    'audio':       'output',
     'gpio':        'input',
     'usb-host':    'input',
     'bt-host':     'input',

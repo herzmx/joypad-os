@@ -1,3 +1,5 @@
+import { DirtyTracker } from './dirty-tracker.js';
+
 /** Bluetooth Device Output Page — BLE mode only */
 export class BtOutputCard {
     constructor(container, protocol, log) {
@@ -24,6 +26,7 @@ export class BtOutputCard {
             </div>`;
 
         this.el.querySelector('#bleModeSaveBtn').addEventListener('click', () => this.save());
+        this.dirty = new DirtyTracker(this.el, this.el.querySelector('#bleModeSaveBtn'));
     }
 
     async load() {
@@ -43,6 +46,7 @@ export class BtOutputCard {
             this.hasBle = true;
             this.currentModeId = result.current;
             this.log(`Loaded ${result.modes.length} BLE modes, current: ${result.current}`);
+            this.dirty?.snapshot();
         } catch (e) {
             card.style.display = 'none';
         }

@@ -1,3 +1,5 @@
+import { DirtyTracker } from './dirty-tracker.js';
+
 /** USB Host Configuration Page */
 export class UsbHostCard {
     constructor(container, protocol, log) {
@@ -40,6 +42,7 @@ export class UsbHostCard {
         this.el.querySelector('#usbHostEnabled').addEventListener('change', () => this.togglePins());
         this.el.querySelector('#usbHostDp').addEventListener('input', () => this.updateDm());
         this.el.querySelector('#usbHostSaveBtn').addEventListener('click', () => this.save());
+        this.dirty = new DirtyTracker(this.el, this.el.querySelector('#usbHostSaveBtn'));
     }
 
     togglePins() {
@@ -70,6 +73,7 @@ export class UsbHostCard {
             this.togglePins();
             this.updateDm();
             this.currentConfig = config;
+            this.dirty?.snapshot();
         } catch (e) {
             card.style.display = 'none';
             this.visible = false;

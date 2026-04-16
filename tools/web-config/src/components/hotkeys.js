@@ -1,5 +1,6 @@
 /** Hotkeys Page — Button combo remapping and actions */
 import { BUTTON_NAMES, BUTTON_LABELS } from './profiles.js';
+import { DirtyTracker } from './dirty-tracker.js';
 
 const COMBO_ACTION_SHIFT = 24;
 const COMBO_BUTTON_MASK = 0x003FFFFF;
@@ -72,6 +73,7 @@ export class HotkeysCard {
             });
         }
         this.el.querySelector('#hotkeysSaveBtn').addEventListener('click', () => this.save());
+        this.dirty = new DirtyTracker(this.el, this.el.querySelector('#hotkeysSaveBtn'));
     }
 
     buildCheckboxes(prefix) {
@@ -127,6 +129,7 @@ export class HotkeysCard {
                 this.el.querySelector(`#comboFields${i}`).style.display = action >= 0 ? '' : 'none';
                 this.el.querySelector(`#comboOutWrap${i}`).style.display = action === 0 ? '' : 'none';
             }
+            this.dirty?.snapshot();
         } catch (e) {
             card.style.display = 'none';
             this.visible = false;

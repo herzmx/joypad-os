@@ -1,4 +1,5 @@
 /** USB Output Page */
+import { DirtyTracker } from './dirty-tracker.js';
 
 // Modes that support CDC (web config): HID(0), SInput(1), Switch(5), KBMouse(11), CDC(13)
 const CDC_COMPATIBLE_MODES = [0, 1, 5, 11, 13];
@@ -34,6 +35,7 @@ export class UsbOutputCard {
             this.updateWarning(parseInt(e.target.value));
         });
         this.el.querySelector('#modeSaveBtn').addEventListener('click', () => this.save());
+        this.dirty = new DirtyTracker(this.el, this.el.querySelector('#modeSaveBtn'));
     }
 
     async load() {
@@ -50,6 +52,7 @@ export class UsbOutputCard {
             }
             this.currentModeId = result.current;
             this.log(`Loaded ${result.modes.length} USB modes, current: ${result.current}`);
+            this.dirty?.snapshot();
         } catch (e) {
             this.log(`Failed to load USB modes: ${e.message}`, 'error');
         }

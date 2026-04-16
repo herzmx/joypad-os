@@ -1,4 +1,5 @@
 /** Buttons & Pins Configuration — Tabbed Sub-Sections */
+import { DirtyTracker } from './dirty-tracker.js';
 
 const PAD_BUTTON_NAMES = [
     'D-Up', 'D-Down', 'D-Left', 'D-Right',
@@ -211,6 +212,7 @@ export class PadConfigCard {
             this.rebuildPinSelects();
         });
         this.el.querySelector('#padSaveBtn').addEventListener('click', () => this.save());
+        this.dirty = new DirtyTracker(this.el, this.el.querySelector('#padSaveBtn'));
         this.el.querySelector('#padResetBtn').addEventListener('click', () => this.reset());
         this.el.querySelector('#padDeadzone').addEventListener('input', (e) => {
             this.el.querySelector('#padDeadzoneValue').textContent = e.target.value;
@@ -338,6 +340,7 @@ export class PadConfigCard {
 
             this.currentConfig = config;
             this.log(`Pad config loaded: ${config.name} (${config.source})`);
+            this.dirty?.snapshot();
         } catch (e) {
             card.style.display = 'none';
             this.log(`Pad config not available: ${e.message}`);
