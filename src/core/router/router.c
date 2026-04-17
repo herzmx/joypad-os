@@ -117,16 +117,17 @@ static const char* get_device_name(const input_event_t* event) {
                         return "Switch 2 Joy-Con R";
                     }
                 }
-                // Use driver's friendly name if available
+                // Prefer the device's actual BT name if available (more specific
+                // than the driver name, especially for generic gamepad driver)
+                if (bt_dev->name[0]) {
+                    return bt_dev->name;
+                }
+                // Fallback to driver's friendly name
                 if (bt_dev->driver) {
                     const bthid_driver_t* driver = (const bthid_driver_t*)bt_dev->driver;
                     if (driver->name) {
                         return driver->name;
                     }
-                }
-                // Fallback to raw Bluetooth device name
-                if (bt_dev->name[0]) {
-                    return bt_dev->name;
                 }
             }
             return "BT Device";
