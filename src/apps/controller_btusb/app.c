@@ -629,38 +629,43 @@ void app_task(void)
 
         bool anything_enabled = false;
         bool anything_waiting = false;
+        bool anything_connected = false;
 
 #if REQUIRE_BLE_OUTPUT
-        // BLE peripheral is always advertising when not connected
-        anything_enabled = true;
-        if (!ble_output_is_connected()) anything_waiting = true;
+        // BLE peripheral advertising is passive — don't count "no peer" as waiting.
+        // But a connected BLE output peer does count as a connection.
+        if (ble_output_is_connected()) anything_connected = true;
 #endif
 #if REQUIRE_BT_INPUT
         if (bt_input_enabled) {
             anything_enabled = true;
-            // playersCount includes both BT and USB host devices
-            if (playersCount == 0) anything_waiting = true;
+            // Use actual BT connection count (Classic + BLE Central),
+            // not playersCount which requires a button press to assign.
+            extern uint8_t btstack_classic_get_connection_count(void);
+            uint8_t bt_count = btstack_classic_get_connection_count();
+            if (bt_count > 0) anything_connected = true;
+            else anything_waiting = true;
         }
 #endif
 
-        if (!anything_enabled) {
-            // Off — nothing wireless/host enabled
-            if (cyw43_led_state) {
-                cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
-                cyw43_led_state = false;
+        if (anything_connected) {
+            // Solid — at least one BT/BLE device connected
+            if (!cyw43_led_state) {
+                cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
+                cyw43_led_state = true;
             }
         } else if (anything_waiting) {
-            // Blink (500ms) — at least one feature still searching
+            // Blink (500ms) — BT scanning, no device yet
             if (now - cyw43_led_last_toggle >= 500) {
                 cyw43_led_state = !cyw43_led_state;
                 cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, cyw43_led_state ? 1 : 0);
                 cyw43_led_last_toggle = now;
             }
         } else {
-            // Solid — everything that's enabled has a connection
-            if (!cyw43_led_state) {
-                cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
-                cyw43_led_state = true;
+            // Off — nothing wireless enabled
+            if (cyw43_led_state) {
+                cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
+                cyw43_led_state = false;
             }
         }
     }
