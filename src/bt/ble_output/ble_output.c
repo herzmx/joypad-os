@@ -765,7 +765,7 @@ ble_output_mode_t ble_output_get_next_mode(void)
 const char* ble_output_get_mode_name(ble_output_mode_t mode)
 {
     switch (mode) {
-        case BLE_MODE_STANDARD: return "Standard";
+        case BLE_MODE_STANDARD: return "Standard BLE";
         case BLE_MODE_XBOX:     return "Xbox BLE";
         default:                return "Unknown";
     }
