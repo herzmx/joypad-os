@@ -18,50 +18,54 @@ export class FeedbackCard {
                 <div class="card-content">
                     <div id="onboardLedSection" style="display:none;">
                         <h3>Onboard LED</h3>
-                        <p class="hint">Board's built-in status LED (BT connection indicator).</p>
-                        <div class="pad-form-row">
+                        <p class="hint" style="margin-top: 8px;">Built-in board LED. Connection status indicator.</p>
+                        <div class="pad-form-row" style="margin-top: 8px;">
                             <span class="label">Enable</span>
                             <label class="toggle"><input type="checkbox" id="onboardLedEnable"><span class="toggle-slider"></span></label>
                         </div>
                     </div>
 
-                    <h3>NeoPixel</h3>
-                    <p class="hint">Addressable RGB LED for status and profile color feedback.</p>
-                    <div class="pad-form-row">
-                        <span class="label">Enable</span>
-                        <label class="toggle"><input type="checkbox" id="ledEnable"><span class="toggle-slider"></span></label>
-                    </div>
-                    <div id="ledSettings" style="display:none;">
-                        <div class="pad-form-row">
-                            <span class="label">GPIO Pin</span>
-                            <input type="number" id="ledPin" min="0" max="47" value="0">
-                            <span class="hint" id="ledPinHint"></span>
+                    <div>
+                        <h3>RGB LED</h3>
+                        <p class="hint" style="margin-top: 8px;">Connection status indicator. Color indicates output mode.</p>
+                        <div class="pad-form-row" style="margin-top: 8px;">
+                            <span class="label">Enable</span>
+                            <label class="toggle"><input type="checkbox" id="ledEnable"><span class="toggle-slider"></span></label>
                         </div>
-                        <div class="pad-form-row">
-                            <span class="label">LED Count</span>
-                            <input type="number" id="ledCount" min="1" max="16" value="1">
-                        </div>
-                        <div class="pad-form-row">
-                            <span class="label">SInput RGB</span>
-                            <label class="toggle"><input type="checkbox" id="sinputRgb"><span class="toggle-slider"></span></label>
-                            <span class="hint">Allow host to control RGB LED</span>
+                        <div id="ledSettings" style="display:none;">
+                            <div class="pad-form-row">
+                                <span class="label">GPIO Pin</span>
+                                <input type="number" id="ledPin" min="0" max="47" value="0">
+                                <span class="hint" id="ledPinHint"></span>
+                            </div>
+                            <div class="pad-form-row">
+                                <span class="label">LED Count</span>
+                                <input type="number" id="ledCount" min="1" max="16" value="1">
+                            </div>
+                            <div class="pad-form-row">
+                                <span class="label">SInput RGB</span>
+                                <label class="toggle"><input type="checkbox" id="sinputRgb"><span class="toggle-slider"></span></label>
+                                <span class="hint">Allow host to control RGB LED</span>
+                            </div>
                         </div>
                     </div>
 
-                    <h3 style="margin-top: 16px;">Buzzer</h3>
-                    <div class="pad-form-row">
-                        <span class="label">Enable</span>
-                        <label class="toggle"><input type="checkbox" id="speakerEnable"><span class="toggle-slider"></span></label>
-                    </div>
-                    <div id="speakerSettings" style="display:none;">
-                        <div class="pad-form-row">
-                            <span class="label">PWM Pin</span>
-                            <input type="number" id="speakerPin" min="0" max="47" value="0">
+                    <div>
+                        <h3>Buzzer</h3>
+                        <div class="pad-form-row" style="margin-top: 8px;">
+                            <span class="label">Enable</span>
+                            <label class="toggle"><input type="checkbox" id="speakerEnable"><span class="toggle-slider"></span></label>
                         </div>
-                        <div class="pad-form-row">
-                            <span class="label">Enable Pin</span>
-                            <input type="number" id="speakerEnablePin" min="-1" max="47" value="-1">
-                            <span class="hint">Amplifier shutdown pin (-1 = always on)</span>
+                        <div id="speakerSettings" style="display:none;">
+                            <div class="pad-form-row">
+                                <span class="label">PWM Pin</span>
+                                <input type="number" id="speakerPin" min="0" max="47" value="0">
+                            </div>
+                            <div class="pad-form-row">
+                                <span class="label">Enable Pin</span>
+                                <input type="number" id="speakerEnablePin" min="-1" max="47" value="-1">
+                                <span class="hint">Amplifier shutdown pin (-1 = always on)</span>
+                            </div>
                         </div>
                     </div>
 
