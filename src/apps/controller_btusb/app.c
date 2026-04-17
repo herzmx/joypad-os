@@ -20,6 +20,10 @@
 #include "tusb.h"
 #include <stdio.h>
 
+#ifdef BTSTACK_USE_CYW43
+#include "pico/cyw43_arch.h"
+#endif
+
 #if REQUIRE_BLE_OUTPUT
 #include "bt/ble_output/ble_output.h"
 #include "bt/transport/bt_transport.h"
@@ -602,6 +606,47 @@ void app_task(void)
             display_clear();
             joy_anim_render();
             display_update();
+        }
+    }
+#endif
+
+    // ----------------------------------------------------------------
+    // CYW43 onboard LED status (Pico W only — no regular GPIO LED)
+    // Solid:      any input connected (BT, USB host, or GPIO pad active)
+    // Slow blink: BT scanning, no connection yet
+    // Off:        idle (no scanning, no connections)
+    // ----------------------------------------------------------------
+#ifdef BTSTACK_USE_CYW43
+    {
+        static uint32_t cyw43_led_last_toggle = 0;
+        static bool cyw43_led_state = false;
+        uint32_t now = platform_time_ms();
+
+        bool any_connected = (playersCount > 0);
+#if REQUIRE_BLE_OUTPUT
+        any_connected = any_connected || ble_output_is_connected();
+#endif
+        any_connected = any_connected || usb_gamepad_active();
+
+        if (any_connected) {
+            // Solid on
+            if (!cyw43_led_state) {
+                cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
+                cyw43_led_state = true;
+            }
+        } else if (bt_input_enabled) {
+            // Slow blink (500ms) — scanning for controllers
+            if (now - cyw43_led_last_toggle >= 500) {
+                cyw43_led_state = !cyw43_led_state;
+                cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, cyw43_led_state ? 1 : 0);
+                cyw43_led_last_toggle = now;
+            }
+        } else {
+            // Off
+            if (cyw43_led_state) {
+                cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
+                cyw43_led_state = false;
+            }
         }
     }
 #endif

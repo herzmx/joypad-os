@@ -1507,23 +1507,32 @@ if (PICO_BOARD STREQUAL "pico_w" OR PICO_BOARD STREQUAL "pico2_w")
     pico_enable_stdio_uart(joypad_usb2ble 1)
 
     # --- ControllerBTUSB (Pico W / Pico 2 W: JoyWing sensor + BLE peripheral + USB) ---
-    # Sensor inputs (JoyWing seesaw I2C) → BLE gamepad output (HOGP) + USB device.
-    # Uses CYW43 Bluetooth for BLE advertising + GATT server (hids_device).
+    # Full-featured universal controller on Pico W:
+    #   GPIO pad + JoyWing → BLE + USB device output
+    #   BT Central (CYW43) for BT controller input
+    #   PIO-USB host for USB controller input (D+ pin configurable via web config)
     add_executable(joypad_controller_btusb)
     target_compile_definitions(joypad_controller_btusb PRIVATE
         CONFIG_CONTROLLER_BTUSB=1
         CONFIG_USB=1
-        DISABLE_USB_HOST=1
+        CONFIG_PAD_INPUT=1
         USE_BOOTSEL_BUTTON=1
         CYW43_LWIP=0
         BTSTACK_USE_CYW43=1
         ENABLE_BTSTACK=1
         REQUIRE_BLE_OUTPUT=1
+        REQUIRE_BT_INPUT=1
+        SENSOR_PAD=1
         SENSOR_JOYWING=1
+        BOARD_TUH_RHPORT=1
+        PICO_DEFAULT_PIO_USB_DP_PIN=2
+        PIO_USB_DP_PIN_DEFAULT=2
     )
     target_sources(joypad_controller_btusb PUBLIC
         ${CORE_SOURCES}
+        ${USB_HOST_SOURCES}
         ${USB_DEVICE_SOURCES}
+        ${CONTROLLER_SOURCES}
         ${CMAKE_CURRENT_SOURCE_DIR}/stubs_peripheral.c
         ${CMAKE_CURRENT_SOURCE_DIR}/drivers/joywing/joywing_input.c
         ${CMAKE_CURRENT_SOURCE_DIR}/drivers/seesaw/seesaw.c
@@ -1533,6 +1542,10 @@ if (PICO_BOARD STREQUAL "pico_w" OR PICO_BOARD STREQUAL "pico2_w")
         ${CMAKE_CURRENT_SOURCE_DIR}/bt/ble_output/ble_output_mouse.c
         ${CMAKE_CURRENT_SOURCE_DIR}/bt/ble_output/ble_output_xbox.c
         ${CMAKE_CURRENT_SOURCE_DIR}/bt/ble_output/ble_nus.c
+        ${BTHID_DEVICE_SOURCES}
+        ${CMAKE_CURRENT_SOURCE_DIR}/usb/usbh/hid/devices/generic/hid_parser.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/bt/btstack/btstack_host.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/bt/btstack/bt_device_db.c
         ${CMAKE_CURRENT_SOURCE_DIR}/bt/transport/bt_transport.c
         ${CMAKE_CURRENT_SOURCE_DIR}/bt/transport/bt_transport_cyw43.c
         ${CMAKE_CURRENT_SOURCE_DIR}/apps/controller_btusb/app.c
@@ -1540,6 +1553,7 @@ if (PICO_BOARD STREQUAL "pico_w" OR PICO_BOARD STREQUAL "pico2_w")
     target_include_directories(joypad_controller_btusb PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/apps/controller_btusb
         ${CMAKE_CURRENT_SOURCE_DIR}/usb/usbd
+        ${CMAKE_CURRENT_SOURCE_DIR}/pad
         ${CMAKE_CURRENT_SOURCE_DIR}/bt
         ${CMAKE_CURRENT_SOURCE_DIR}/bt/btstack
         ${CMAKE_CURRENT_SOURCE_DIR}/bt/bthid
@@ -1559,13 +1573,20 @@ if (PICO_BOARD STREQUAL "pico_w" OR PICO_BOARD STREQUAL "pico2_w")
         pico_stdlib
         pico_multicore
         pico_rand
+        hardware_pio
         hardware_i2c
+        hardware_adc
+        hardware_pwm
+        hardware_spi
         pico_cyw43_arch_poll
         pico_btstack_ble
         pico_btstack_classic
         pico_btstack_cyw43
         tinyusb_device
         tinyusb_board
+        tinyusb_host
+        tinyusb_pico_pio_usb
+        xinput_host
         controller_btusb_xbox_gatt
     )
     pico_btstack_make_gatt_header(joypad_controller_btusb PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/bt/ble_output/ble_gamepad.gatt)
