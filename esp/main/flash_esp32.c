@@ -234,3 +234,14 @@ void flash_cycle_profile_prev(void)
     uint8_t prev = (current == 0) ? (total - 1) : (current - 1);
     flash_set_active_profile_index(prev);
 }
+
+void flash_factory_reset(void)
+{
+    if (!nvs_opened) return;
+    nvs_erase_all(nvs_hdl);
+    nvs_commit(nvs_hdl);
+    memset(&runtime_settings, 0, sizeof(flash_t));
+    runtime_settings.magic = SETTINGS_MAGIC;
+    runtime_settings_loaded = true;
+    printf("[flash_esp32] Factory reset complete\n");
+}
