@@ -15,3 +15,4 @@ esp/build/
 esp/sdkconfig
 esp/dependencies.lock
 esp/.cache/
+.vercel
