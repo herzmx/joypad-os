@@ -16,3 +16,4 @@ esp/sdkconfig
 esp/dependencies.lock
 esp/.cache/
 .vercel
+.claude/
