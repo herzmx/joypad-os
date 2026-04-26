@@ -662,7 +662,8 @@ static inline void router_merge_mode(const input_event_t* event, output_target_t
 
                 // Start with neutral state (all buttons released)
                 // Note: deltas are cleared here but accumulated fresh from blend devices
-                init_input_event(&out->current_state);
+                input_event_t x_current_state;
+                init_input_event(&x_current_state);
 
                 // Blend all active devices
                 bool first = true;
@@ -672,75 +673,76 @@ static inline void router_merge_mode(const input_event_t* event, output_target_t
                     input_event_t* dev = &blend_devices[output][i].state;
 
                     // Buttons: OR together (active-high, 1 = pressed)
-                    out->current_state.buttons |= dev->buttons;
+                    x_current_state.buttons |= dev->buttons;
 
                     // Keys: OR together (active-high)
-                    out->current_state.keys |= dev->keys;
+                    x_current_state.keys |= dev->keys;
 
                     // Analog: use furthest from center for sticks, max for triggers
                     // New format: [0]=LX, [1]=LY, [2]=RX, [3]=RY, [4]=L2, [5]=R2
                     for (int j = 0; j < ANALOG_COUNT; j++) {
                         if (j >= ANALOG_L2) {
                             // Triggers (L2, R2): use max value
-                            if (dev->analog[j] > out->current_state.analog[j]) {
-                                out->current_state.analog[j] = dev->analog[j];
+                            if (dev->analog[j] > x_current_state.analog[j]) {
+                                x_current_state.analog[j] = dev->analog[j];
                             }
                         } else {
                             // Sticks (LX, LY, RX, RY): use furthest from center
                             int8_t cur_delta = (int8_t)(out->current_state.analog[j] - 128);
                             int8_t dev_delta = (int8_t)(dev->analog[j] - 128);
                             if (abs(dev_delta) > abs(cur_delta)) {
-                                out->current_state.analog[j] = dev->analog[j];
+                                x_current_state.analog[j] = dev->analog[j];
                             }
                         }
                     }
 
                     // Mouse deltas: accumulate from all, then clear device to prevent re-adding
-                    out->current_state.delta_x += dev->delta_x;
-                    out->current_state.delta_y += dev->delta_y;
+                    x_current_state.delta_x += dev->delta_x;
+                    x_current_state.delta_y += dev->delta_y;
                     dev->delta_x = 0;
                     dev->delta_y = 0;
 
                     // Motion: use first device that has motion data
-                    if (dev->has_motion && !out->current_state.has_motion) {
-                        out->current_state.has_motion = true;
-                        out->current_state.accel[0] = dev->accel[0];
-                        out->current_state.accel[1] = dev->accel[1];
-                        out->current_state.accel[2] = dev->accel[2];
-                        out->current_state.gyro[0] = dev->gyro[0];
-                        out->current_state.gyro[1] = dev->gyro[1];
-                        out->current_state.gyro[2] = dev->gyro[2];
+                    if (dev->has_motion && !x_current_state.has_motion) {
+                        x_current_state.has_motion = true;
+                        x_current_state.accel[0] = dev->accel[0];
+                        x_current_state.accel[1] = dev->accel[1];
+                        x_current_state.accel[2] = dev->accel[2];
+                        x_current_state.gyro[0] = dev->gyro[0];
+                        x_current_state.gyro[1] = dev->gyro[1];
+                        x_current_state.gyro[2] = dev->gyro[2];
                     }
 
                     // Pressure: use first device that has pressure data
-                    if (dev->has_pressure && !out->current_state.has_pressure) {
-                        out->current_state.has_pressure = true;
+                    if (dev->has_pressure && !x_current_state.has_pressure) {
+                        x_current_state.has_pressure = true;
                         for (int j = 0; j < 12; j++) {
-                            out->current_state.pressure[j] = dev->pressure[j];
+                            x_current_state.pressure[j] = dev->pressure[j];
                         }
                     }
 
                     // Touch: use first device that has touch data
-                    if (dev->has_touch && !out->current_state.has_touch) {
-                        out->current_state.has_touch = true;
-                        out->current_state.touch[0] = dev->touch[0];
-                        out->current_state.touch[1] = dev->touch[1];
+                    if (dev->has_touch && !x_current_state.has_touch) {
+                        x_current_state.has_touch = true;
+                        x_current_state.touch[0] = dev->touch[0];
+                        x_current_state.touch[1] = dev->touch[1];
                     }
 
                     // Battery: use first device that reports battery
-                    if (dev->battery_level > 0 && out->current_state.battery_level == 0) {
-                        out->current_state.battery_level = dev->battery_level;
-                        out->current_state.battery_charging = dev->battery_charging;
+                    if (dev->battery_level > 0 && x_current_state.battery_level == 0) {
+                        x_current_state.battery_level = dev->battery_level;
+                        x_current_state.battery_charging = dev->battery_charging;
                     }
 
                     // Use metadata from first active device
                     if (first) {
-                        out->current_state.dev_addr = dev->dev_addr;
-                        out->current_state.instance = dev->instance;
-                        out->current_state.type = dev->type;
+                        x_current_state.dev_addr = dev->dev_addr;
+                        x_current_state.instance = dev->instance;
+                        x_current_state.type = dev->type;
                         first = false;
                     }
                 }
+                out->current_state = x_current_state;
             }
             break;
         }
