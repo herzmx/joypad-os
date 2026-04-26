@@ -13,12 +13,16 @@ jobs:
     environment:
       name: Web Config
       url: https://config.joypad.ai
+    env:
+      # Opt JavaScript actions into Node 24 ahead of GitHub forcing it
+      # in June 2026; silences the Node 20 deprecation warning.
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install dependencies
         run: cd tools/web-config && npm install
