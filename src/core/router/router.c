@@ -688,7 +688,7 @@ static inline void router_merge_mode(const input_event_t* event, output_target_t
                             }
                         } else {
                             // Sticks (LX, LY, RX, RY): use furthest from center
-                            int8_t cur_delta = (int8_t)(out->current_state.analog[j] - 128);
+                            int8_t cur_delta = (int8_t)(x_current_state.analog[j] - 128);
                             int8_t dev_delta = (int8_t)(dev->analog[j] - 128);
                             if (abs(dev_delta) > abs(cur_delta)) {
                                 x_current_state.analog[j] = dev->analog[j];
